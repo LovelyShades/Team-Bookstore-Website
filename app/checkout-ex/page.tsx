@@ -1,43 +1,34 @@
-'use client';
-import { useState } from 'react';
+import { supabaseServer } from '@/lib/supabase/server';
+import CheckoutForm from './CheckoutForm';
+import Link from 'next/link';
 
-export default function CheckoutEx() {
-  const [cartId, setCartId] = useState('');
-  const [discountCode, setDiscountCode] = useState('');
-  const [result, setResult] = useState<any>(null);
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+export default async function CheckoutEx() {
+  const s = await supabaseServer();
+  const { data: { user } } = await s.auth.getUser();
 
-  async function doCheckout() {
-    setErr(null); setResult(null); setLoading(true);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cartId, discountCode })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Checkout failed');
-      setResult(data);
-    } catch (e: any) {
-      setErr(e.message);
-    } finally { setLoading(false); }
+  if (!user) {
+    return (
+      <div className="p-6">
+        <p className="text-red-600 mb-4">Please sign in to checkout.</p>
+        <Link href="/auth-ex" className="text-blue-600 hover:underline">Sign in</Link>
+      </div>
+    );
   }
 
-  return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Checkout (example)</h1>
-      <input className="border rounded px-3 py-2 w-full max-w-sm"
-        placeholder="cartId (uuid)" value={cartId} onChange={e=>setCartId(e.target.value)} />
-      <input className="border rounded px-3 py-2 w-full max-w-sm"
-        placeholder="discountCode (optional)" value={discountCode} onChange={e=>setDiscountCode(e.target.value)} />
-      <button onClick={doCheckout} className="border rounded px-3 py-2">
-        {loading ? 'Processing…' : 'Checkout'}
-      </button>
-      {err && <div className="text-red-600">{err}</div>}
-      {result && <pre className="bg-black text-white p-3 rounded overflow-auto">
-{JSON.stringify(result, null, 2)}
-      </pre>}
-    </div>
-  );
+  const { data: cart } = await s
+    .from('carts')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!cart) {
+    return (
+      <div className="p-6">
+        <p className="text-gray-600 mb-4">Your cart is empty.</p>
+        <Link href="/" className="text-blue-600 hover:underline">Browse books</Link>
+      </div>
+    );
+  }
+
+  return <CheckoutForm cartId={cart.id} />;
 }
