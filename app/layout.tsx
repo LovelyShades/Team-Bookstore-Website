@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       {/* suppressHydrationWarning prevents mismatch from extension-injected attrs */}
       <body suppressHydrationWarning>
         <nav>
-          <Link href="/">/</Link> | <Link href="/book-ex">/book-ex</Link> | <Link href="/auth-ex">/auth-ex</Link> | <Link href="/orders-ex">/orders-ex</Link>
+          <Link href="/">/</Link> | <Link href="/book-ex">/book-ex</Link> | <Link href="/auth-ex">/auth-ex</Link> | <Link href="/orders-ex">/orders-ex</Link> | <Link href="/cart-ex">/cart-ex</Link>
         </nav>
         {children}
       </body>
