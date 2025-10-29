@@ -17,7 +17,9 @@ export default function CheckoutForm({ cartId }: { cartId: string }) {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cartId, discountCode }),
+        body: JSON.stringify({
+          cartId, discountCode: discountCode.trim() || null,
+        }),
       });
 
       const data = await res.json();
