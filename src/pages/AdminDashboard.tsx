@@ -1,5 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Link, Outlet, useLocation } from 'react-router-dom';
+import AdminSummaryBar from '@/components/admin/AdminSummaryBar';
 
 export default function AdminDashboard() {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -34,6 +35,8 @@ export default function AdminDashboard() {
   return (
     <div className="max-w-7xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8">Admin</h1>
+
+      <AdminSummaryBar />
 
       <div className="flex gap-6">
         <aside className="w-48 border-r pr-6">
