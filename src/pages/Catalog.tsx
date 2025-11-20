@@ -25,8 +25,13 @@ const Catalog = () => {
         .eq("active", true);
 
       if (filters.q) {
-        query = query.ilike("name", `%${filters.q.trim()}%`);
-      }
+  const q = filters.q.trim();
+
+  query = query.or(
+    `name.ilike.%${q}%,author.ilike.%${q}%,isbn.ilike.%${q}%`
+  );
+}
+
 
       if (filters.available === "1") {
         query = query.gt("stock", 0);
@@ -90,7 +95,7 @@ const Catalog = () => {
           >
             <input
               name="q"
-              placeholder="🔍 Search by book name..."
+              placeholder="🔍 Search by book name, author, or ISBN..."
               defaultValue={filters.q}
               className="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             />
@@ -129,12 +134,7 @@ const Catalog = () => {
               <option value="1">In Stock Only</option>
             </select>
 
-            <Button
-              type="submit"
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-indigo-700"
-            >
-              Apply Filters
-            </Button>
+            
           </form>
         </Card>
 
