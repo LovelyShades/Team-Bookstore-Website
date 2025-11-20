@@ -430,7 +430,24 @@ const BookDetail = () => {
 
           {/* Column 3: Price, Quantity, and Add to Cart (3 columns) */}
           <div className="lg:col-span-3">
-            <div className="p-6 bg-card/50 rounded-xl space-y-6 sticky top-24">
+            <div className="p-6 bg-card/50 rounded-xl space-y-6 sticky top-24 relative">
+              {/* Check if book is on sale - for demo, books with prices ending in specific patterns */}
+              {(() => {
+                const lastDigit = book.price_cents % 10;
+                const isOnSale = lastDigit === 0 || lastDigit === 5;
+                const salePercent = lastDigit === 0 ? 15 : lastDigit === 5 ? 20 : 0;
+                
+                return isOnSale ? (
+                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10 flex items-center gap-1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                      <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                    {salePercent}% OFF SALE!
+                  </div>
+                ) : null;
+              })()}
+              
               {/* Stock Status */}
               <div className="text-center">
                 {book.stock < 5 && book.stock > 0 && (

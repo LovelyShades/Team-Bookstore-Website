@@ -35,6 +35,8 @@ const Catalog = () => {
 
       if (filters.available === "1") {
         query = query.gt("stock", 0);
+      } else if (filters.available === "2") {
+        query = query.eq("stock", 0);
       }
 
       if (filters.sort === "price_low") {
@@ -43,6 +45,10 @@ const Catalog = () => {
         query = query.order("price_cents", { ascending: false });
       } else if (filters.sort === "name") {
         query = query.order("name", { ascending: true });
+      } else if (filters.sort === "stock_low") {
+        query = query.order("stock", { ascending: true });
+      } else if (filters.sort === "stock_high") {
+        query = query.order("stock", { ascending: false });
       } else {
         query = query.order("created_at", { ascending: false });
       }
@@ -110,12 +116,14 @@ const Catalog = () => {
               aria-label="Sort books by"
               value={filters.sort}
               onChange={(e) => setFilters({ ...filters, sort: e.target.value })}
-              className="min-w-[180px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+              className="min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
             >
               <option value="created_at">Newest First</option>
               <option value="name">Name (A-Z)</option>
               <option value="price_low">Price: Low to High</option>
               <option value="price_high">Price: High to Low</option>
+              <option value="stock_high">Quantity: High to Low</option>
+              <option value="stock_low">Quantity: Low to High</option>
             </select>
 
             {/* Availability Dropdown */}
@@ -132,6 +140,7 @@ const Catalog = () => {
             >
               <option value="0">All Books</option>
               <option value="1">In Stock Only</option>
+              <option value="2">Out of Stock</option>
             </select>
 
             

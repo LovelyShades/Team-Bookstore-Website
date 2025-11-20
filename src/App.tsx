@@ -22,6 +22,7 @@ import AdminOrders from './pages/admin/AdminOrders';
 import AdminFulfillments from '@/pages/admin/AdminFulfillments';
 import TestDelivery from "./pages/TestDelivery";
 import Wishlist from "./pages/Wishlist";
+import Discounts from "./pages/Discounts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/catalog" element={<Catalog />} />
+            <Route path="/discounts" element={<Discounts />} />
             <Route path="/book/:id" element={<BookDetail />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />

@@ -35,6 +35,7 @@ export const Navbar = () => {
         <Link to="/" className="font-bold">Bookstore</Link>
         <div className="flex gap-4">
           <Link to="/catalog">Catalog</Link>
+          <Link to="/discounts">Sale</Link>
           <Link to="/wishlist">Wishlist</Link>
           <Link to="/cart">Cart {cartCount > 0 && `(${cartCount})`}</Link>
           <Link to="/orders">Orders</Link>
