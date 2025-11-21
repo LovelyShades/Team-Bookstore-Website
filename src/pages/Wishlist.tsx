@@ -38,10 +38,10 @@ const Wishlist = () => {
         <Card className="max-w-md text-center bg-card backdrop-blur-sm border-border p-8">
           <Heart className="h-20 w-20 mx-auto mb-6 text-muted" />
           <h2 className="text-2xl font-bold text-foreground mb-2">
-            Sign in to view your cart
+            Sign in to view your wishlist
           </h2>
           <p className="text-muted-foreground mb-6">
-            You need to be logged in to access your shopping cart.
+            You need to be logged in to access your wishlist.
           </p>
           <Link to="/auth">
             <Button size="lg" className="w-full rounded-lg">
