@@ -24,12 +24,13 @@ export function BookCard({
 }: BookCardProps) {
   return (
     <Card
-      className={`overflow-hidden border border-border hover:shadow-lg transition-all duration-300 group h-full flex flex-col ${
+      className={`overflow-hidden border border-border hover:shadow-lg transition-all duration-300 group flex flex-col ${
         compact ? "" : "max-w-sm"
       }`}
+      style={{ height: '100%' }}
     >
       {/* FIXED ASPECT RATIO — matches Latest Releases EXACTLY */}
-      <div className="relative w-full aspect-[2/3] overflow-hidden bg-muted">
+      <div className="relative w-full aspect-[2/3] overflow-hidden bg-muted flex-shrink-0">
         <img
           src={image}
           alt={title}
@@ -55,24 +56,29 @@ export function BookCard({
       </div>
 
       <CardContent className={`flex-1 flex flex-col ${compact ? "p-3" : "p-4"}`}>
+        {/* Title with fixed height */}
         <h3
-          className={`font-bold text-foreground line-clamp-2 mb-1 group-hover:text-accent transition-colors ${
-            compact ? "text-sm" : "text-base"
+          className={`font-bold text-foreground line-clamp-2 group-hover:text-accent transition-colors ${
+            compact ? "text-sm min-h-[2.5rem]" : "text-base min-h-[3rem]"
           }`}
         >
           {title}
         </h3>
 
+        {/* Author with fixed height */}
         <p
-          className={`text-muted-foreground mb-2 line-clamp-1 ${
-            compact ? "text-xs" : "text-sm"
+          className={`text-muted-foreground line-clamp-1 ${
+            compact ? "text-xs mb-2" : "text-sm mb-3"
           }`}
         >
           {author}
         </p>
 
-        {/* PRICE */}
-        <div className="mt-auto flex items-center gap-2">
+        {/* Spacer to push price to bottom */}
+        <div className="flex-1"></div>
+
+        {/* PRICE - always at bottom */}
+        <div className="flex items-center gap-2 mt-auto">
           <span
             className={`font-bold text-foreground ${
               compact ? "text-sm" : "text-lg"

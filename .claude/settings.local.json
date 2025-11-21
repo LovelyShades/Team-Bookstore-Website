@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx supabase migration new:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

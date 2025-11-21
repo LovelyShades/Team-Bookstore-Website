@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { Search, Plus, Trash2, Edit, BookOpen, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminBooks() {
@@ -31,6 +32,8 @@ export default function AdminBooks() {
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [filterFeatured, setFilterFeatured] = useState<'all' | 'featured' | 'not-featured'>('all');
   const [filterSales, setFilterSales] = useState<'all' | 'on-sale' | 'not-on-sale'>('all');
+  const [selectedBooks, setSelectedBooks] = useState<Set<string>>(new Set());
+  const [selectAll, setSelectAll] = useState(false);
 
   const [formData, setFormData] = useState({
     price_cents: 2999,
@@ -125,10 +128,10 @@ export default function AdminBooks() {
 
   const deleteBookMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('items')
-        .delete()
-        .eq('id', id);
+      // Use database function to delete book with CASCADE behavior
+      const { error } = await supabase.rpc('fn_delete_book', {
+        p_book_id: id,
+      });
 
       if (error) {
         console.error('Delete error:', error);
@@ -142,6 +145,30 @@ export default function AdminBooks() {
     onError: (error: any) => {
       console.error('Delete mutation error:', error);
       toast.error('Failed to delete book: ' + (error.message || 'Unknown error'));
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      // Use database function to delete multiple books with CASCADE behavior
+      const { error } = await supabase.rpc('fn_delete_books', {
+        p_book_ids: ids,
+      });
+
+      if (error) {
+        console.error('Bulk delete error:', error);
+        throw error;
+      }
+    },
+    onSuccess: (_, ids) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-books'] });
+      setSelectedBooks(new Set());
+      setSelectAll(false);
+      toast.success(`Successfully deleted ${ids.length} book${ids.length > 1 ? 's' : ''}!`);
+    },
+    onError: (error: any) => {
+      console.error('Bulk delete mutation error:', error);
+      toast.error('Failed to delete books: ' + (error.message || 'Unknown error'));
     },
   });
 
@@ -263,6 +290,39 @@ export default function AdminBooks() {
 
     return matchesSearch && matchesStatus && matchesFeatured && matchesSales;
   }) || [];
+
+  const handleToggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedBooks(new Set());
+      setSelectAll(false);
+    } else {
+      setSelectedBooks(new Set(filteredBooks.map(book => book.id)));
+      setSelectAll(true);
+    }
+  };
+
+  const handleToggleBook = (bookId: string) => {
+    const newSelected = new Set(selectedBooks);
+    if (newSelected.has(bookId)) {
+      newSelected.delete(bookId);
+    } else {
+      newSelected.add(bookId);
+    }
+    setSelectedBooks(newSelected);
+    setSelectAll(newSelected.size === filteredBooks.length && filteredBooks.length > 0);
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedBooks.size === 0) {
+      toast.error('No books selected');
+      return;
+    }
+
+    const count = selectedBooks.size;
+    if (confirm(`Are you sure you want to delete ${count} book${count > 1 ? 's' : ''}?`)) {
+      bulkDeleteMutation.mutate(Array.from(selectedBooks));
+    }
+  };
 
 
   return (
@@ -769,6 +829,37 @@ export default function AdminBooks() {
             <CardDescription>Manage your book catalog</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Bulk Actions */}
+            {filteredBooks.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selectAll}
+                    onCheckedChange={handleToggleSelectAll}
+                    id="select-all"
+                  />
+                  <Label htmlFor="select-all" className="cursor-pointer font-medium">
+                    Select All ({filteredBooks.length})
+                  </Label>
+                  {selectedBooks.size > 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      {selectedBooks.size} selected
+                    </span>
+                  )}
+                </div>
+                {selectedBooks.size > 0 && (
+                  <Button
+                    variant="destructive"
+                    onClick={handleBulkDelete}
+                    disabled={bulkDeleteMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Selected ({selectedBooks.size})
+                  </Button>
+                )}
+              </div>
+            )}
+
             {/* Filter Controls */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div>
@@ -828,16 +919,23 @@ export default function AdminBooks() {
             ) : (
               <div className="space-y-2 max-h-[600px] overflow-y-auto">
                 {filteredBooks.map((book) => (
-                  <Card key={book.id}>
+                  <Card key={book.id} className={selectedBooks.has(book.id) ? 'ring-2 ring-primary' : ''}>
                     <CardContent className="p-4">
                       <div className="flex gap-4 items-start">
-                        {book.img_url && (
-                          <img
-                            src={book.img_url}
-                            alt={book.name}
-                            className="w-16 h-20 object-cover rounded"
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={selectedBooks.has(book.id)}
+                            onCheckedChange={() => handleToggleBook(book.id)}
+                            className="mt-1"
                           />
-                        )}
+                          {book.img_url && (
+                            <img
+                              src={book.img_url}
+                              alt={book.name}
+                              className="w-16 h-20 object-cover rounded"
+                            />
+                          )}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="font-semibold">{book.name}</h4>
                           <p className="text-sm text-muted-foreground">

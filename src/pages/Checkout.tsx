@@ -21,6 +21,7 @@ const Checkout = () => {
   const [discountCode, setDiscountCode] = useState('');
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const [appliedDiscount, setAppliedDiscount] = useState(0);
+  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
   const [newAddress, setNewAddress] = useState({
     label: '',
     line1: '',
@@ -279,19 +280,69 @@ const Checkout = () => {
             />
             <Button
               variant="outline"
-              onClick={() => {
-                // This is just a UI demonstration
-                // The actual validation happens in fn_checkout
-                toast.info('Discount code will be validated at checkout');
+              onClick={async () => {
+                if (!discountCode.trim()) {
+                  toast.error('Please enter a discount code');
+                  return;
+                }
+
+                setIsValidatingDiscount(true);
+                try {
+                  const { data, error } = await supabase
+                    .from('discounts')
+                    .select('pct_off, max_uses, used_count, expires_at, active')
+                    .eq('code', discountCode)
+                    .single();
+
+                  if (error || !data) {
+                    toast.error('Invalid discount code');
+                    setAppliedDiscount(0);
+                    return;
+                  }
+
+                  if (!data.active) {
+                    toast.error('This discount code is no longer active');
+                    setAppliedDiscount(0);
+                    return;
+                  }
+
+                  if (data.expires_at && new Date(data.expires_at) < new Date()) {
+                    toast.error('This discount code has expired');
+                    setAppliedDiscount(0);
+                    return;
+                  }
+
+                  if (data.max_uses && data.used_count >= data.max_uses) {
+                    toast.error('This discount code has reached its usage limit');
+                    setAppliedDiscount(0);
+                    return;
+                  }
+
+                  setAppliedDiscount(data.pct_off || 0);
+                  toast.success(`Discount applied: ${data.pct_off}% off!`);
+                } catch (error) {
+                  console.error('Discount validation error:', error);
+                  toast.error('Failed to validate discount code');
+                  setAppliedDiscount(0);
+                } finally {
+                  setIsValidatingDiscount(false);
+                }
               }}
+              disabled={isValidatingDiscount}
               className="rounded-lg"
             >
-              Apply
+              {isValidatingDiscount ? 'Validating...' : 'Apply'}
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            Discount will be validated when you place your order
-          </p>
+          {appliedDiscount > 0 ? (
+            <p className="text-sm text-accent font-semibold mt-2">
+              ✓ {appliedDiscount}% discount applied!
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-2">
+              Enter a valid discount code and click Apply
+            </p>
+          )}
         </div>
 
         {/* Shipping Address */}

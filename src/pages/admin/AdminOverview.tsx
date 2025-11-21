@@ -1,16 +1,20 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LayoutGrid, BarChart2, BookOpen, ShoppingCart, Users, DollarSign, CalendarDays, Percent } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { LayoutGrid, BarChart2, BookOpen, ShoppingCart, Users, DollarSign, CalendarDays, Percent, Trash2, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ChartContainer, ChartTooltipContent, ChartLegendContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { startOfWeek, startOfMonth, addDays, addWeeks, addMonths, format, isBefore } from 'date-fns';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountUp from 'react-countup';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 export default function AdminOverview() {
+  const queryClient = useQueryClient();
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
@@ -87,6 +91,72 @@ export default function AdminOverview() {
 
   const [view, setView] = useState<'daily' | 'weekly' | 'monthly'>('daily');
 
+  const clearOrdersMutation = useMutation({
+    mutationFn: async () => {
+      // Delete order_items first (foreign key constraint)
+      const { error: orderItemsError } = await supabase
+        .from('order_items')
+        .delete()
+        .neq('order_id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+      if (orderItemsError) throw orderItemsError;
+
+      // Then delete orders
+      const { error: ordersError } = await supabase
+        .from('orders')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+      if (ordersError) throw ordersError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      toast.success('All orders and sales data have been cleared');
+    },
+    onError: (error: any) => {
+      toast.error('Failed to clear orders: ' + (error.message || 'Unknown error'));
+    },
+  });
+
+  const clearCartsMutation = useMutation({
+    mutationFn: async () => {
+      // Delete cart_items first
+      const { error: cartItemsError } = await supabase
+        .from('cart_items')
+        .delete()
+        .neq('cart_id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+      if (cartItemsError) throw cartItemsError;
+
+      // Then delete carts
+      const { error: cartsError } = await supabase
+        .from('carts')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+
+      if (cartsError) throw cartsError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      toast.success('All cart data has been cleared');
+    },
+    onError: (error: any) => {
+      toast.error('Failed to clear carts: ' + (error.message || 'Unknown error'));
+    },
+  });
+
+  const handleClearOrders = () => {
+    if (confirm('⚠️ WARNING: This will permanently delete ALL orders and sales data. This action cannot be undone. Are you sure?')) {
+      clearOrdersMutation.mutate();
+    }
+  };
+
+  const handleClearCarts = () => {
+    if (confirm('⚠️ WARNING: This will permanently delete ALL shopping carts. This action cannot be undone. Are you sure?')) {
+      clearCartsMutation.mutate();
+    }
+  };
+
   const orderDates = stats?.orders?.map(o => new Date(o.created_at)) || [];
   const startDate = orderDates.length ? new Date(Math.min(...orderDates.map(d => d.getTime()))) : new Date();
   const endDate = new Date();
@@ -146,13 +216,48 @@ export default function AdminOverview() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <LayoutGrid className="h-7 w-7 text-primary" />
-          <h2 className="text-2xl font-bold">Dashboard Overview</h2>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <LayoutGrid className="h-7 w-7 text-primary" />
+            <h2 className="text-2xl font-bold">Dashboard Overview</h2>
+          </div>
+          <p className="text-muted-foreground">Quick stats about your bookstore</p>
         </div>
-        <p className="text-muted-foreground">Quick stats about your bookstore</p>
       </div>
+
+      {/* Data Management Card */}
+      <Card className="border-destructive/50">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <CardTitle className="text-destructive">Data Management</CardTitle>
+          </div>
+          <CardDescription>
+            Permanently delete data from your database. These actions cannot be undone.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              variant="destructive"
+              onClick={handleClearOrders}
+              disabled={clearOrdersMutation.isPending || (stats?.totalOrders || 0) === 0}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear All Orders & Sales Data
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleClearCarts}
+              disabled={clearCartsMutation.isPending}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear All Shopping Carts
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {statCards.map((stat) => {
