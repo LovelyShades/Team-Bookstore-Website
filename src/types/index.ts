@@ -16,6 +16,10 @@ export interface Item {
   open_library_id?: string | null;
   publisher?: string | null;
   page_count?: number | null;
+  on_sale?: boolean;
+  sale_price_cents?: number | null;
+  sale_percentage?: number | null;
+  sale_ends_at?: string | null;
 }
 
 export interface Profile {

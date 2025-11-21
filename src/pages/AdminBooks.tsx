@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { bookService } from '@/services/bookService';
 import { OpenLibraryBook, Item } from '@/types';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -19,19 +20,29 @@ export default function AdminBooks() {
   const { isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<OpenLibraryBook[]>([]);
   const [searching, setSearching] = useState(false);
   const [selectedBook, setSelectedBook] = useState<OpenLibraryBook | null>(null);
   const [editingBook, setEditingBook] = useState<Item | null>(null);
-  
+
+  const [filterSearch, setFilterSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [filterFeatured, setFilterFeatured] = useState<'all' | 'featured' | 'not-featured'>('all');
+  const [filterSales, setFilterSales] = useState<'all' | 'on-sale' | 'not-on-sale'>('all');
+
   const [formData, setFormData] = useState({
     price_cents: 2999,
     stock: 10,
     active: true,
     featured: false,
     description: '',
+    on_sale: false,
+    sale_input_mode: 'price' as 'price' | 'percentage',
+    sale_price_cents: '',
+    sale_percentage: '',
+    sale_ends_at: '',
   });
 
   const { data: existingBooks, isLoading: booksLoading } = useQuery({
@@ -41,7 +52,7 @@ export default function AdminBooks() {
         .from('items')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as Item[];
     },
@@ -70,7 +81,7 @@ export default function AdminBooks() {
         .insert([bookData])
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -81,7 +92,7 @@ export default function AdminBooks() {
       setSelectedBook(null);
       setSearchQuery('');
       setSearchResults([]);
-      setFormData({ price_cents: 2999, stock: 10, active: true, featured: false, description: '' });
+      setFormData({ price_cents: 2999, stock: 10, active: true, featured: false, description: '', on_sale: false, sale_input_mode: 'price', sale_price_cents: '', sale_percentage: '', sale_ends_at: '' });
     },
     onError: (error) => {
       toast.error('Failed to add book: ' + error.message);
@@ -96,7 +107,7 @@ export default function AdminBooks() {
         .eq('id', id)
         .select()
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -105,7 +116,7 @@ export default function AdminBooks() {
       queryClient.invalidateQueries({ queryKey: ['featured-items'] });
       toast.success('Book updated successfully!');
       setEditingBook(null);
-      setFormData({ price_cents: 2999, stock: 10, active: true, featured: false, description: '' });
+      setFormData({ price_cents: 2999, stock: 10, active: true, featured: false, description: '', on_sale: false, sale_input_mode: 'price', sale_price_cents: '', sale_percentage: '', sale_ends_at: '' });
     },
     onError: (error) => {
       toast.error('Failed to update book: ' + error.message);
@@ -118,7 +129,7 @@ export default function AdminBooks() {
         .from('items')
         .delete()
         .eq('id', id);
-      
+
       if (error) {
         console.error('Delete error:', error);
         throw error;
@@ -153,7 +164,7 @@ export default function AdminBooks() {
       toast.error('Please enter a search term');
       return;
     }
-    
+
     setSearching(true);
     try {
       const results = await bookService.searchBooks(searchQuery);
@@ -179,7 +190,7 @@ export default function AdminBooks() {
 
   const handleAddBook = () => {
     if (!selectedBook) return;
-    
+
     const bookData = {
       ...bookService.formatBookForDatabase(selectedBook),
       price_cents: formData.price_cents,
@@ -188,21 +199,33 @@ export default function AdminBooks() {
       featured: formData.featured,
       description: formData.description || null,
     };
-    
+
     addBookMutation.mutate(bookData);
   };
 
   const handleUpdateBook = () => {
     if (!editingBook) return;
-    
-    const bookData = {
+
+    const salePriceCents = formData.on_sale
+      ? (typeof formData.sale_price_cents === 'string' && formData.sale_price_cents ? parseInt(formData.sale_price_cents) : 0)
+      : null;
+
+    const salePercentage = formData.on_sale && salePriceCents
+      ? Math.round(((formData.price_cents - salePriceCents) / formData.price_cents) * 100)
+      : null;
+
+    const bookData: any = {
       price_cents: formData.price_cents,
       stock: formData.stock,
       active: formData.active,
       featured: formData.featured,
       description: formData.description || null,
+      on_sale: formData.on_sale,
+      sale_price_cents: salePriceCents,
+      sale_percentage: salePercentage,
+      sale_ends_at: formData.on_sale && formData.sale_ends_at ? formData.sale_ends_at : null,
     };
-    
+
     updateBookMutation.mutate({ id: editingBook.id, bookData });
   };
 
@@ -215,8 +238,31 @@ export default function AdminBooks() {
       active: book.active,
       featured: book.featured || false,
       description: book.description || '',
+      on_sale: book.on_sale || false,
+      sale_input_mode: 'price' as 'price' | 'percentage',
+      sale_price_cents: book.sale_price_cents ? book.sale_price_cents.toString() : '',
+      sale_percentage: book.sale_percentage ? book.sale_percentage.toString() : '',
+      sale_ends_at: book.sale_ends_at ? new Date(book.sale_ends_at).toISOString().slice(0, 16) : '',
     });
   };
+
+  const filteredBooks = existingBooks?.filter(book => {
+    const matchesSearch = filterSearch === '' ||
+      book.name.toLowerCase().includes(filterSearch.toLowerCase()) ||
+      book.author?.toLowerCase().includes(filterSearch.toLowerCase()) ||
+      book.isbn?.includes(filterSearch);
+
+    const matchesStatus = filterStatus === 'all' ||
+      (filterStatus === 'active' ? book.active : !book.active);
+
+    const matchesFeatured = filterFeatured === 'all' ||
+      (filterFeatured === 'featured' ? book.featured : !book.featured);
+
+    const matchesSales = filterSales === 'all' ||
+      (filterSales === 'on-sale' ? book.on_sale : !book.on_sale);
+
+    return matchesSearch && matchesStatus && matchesFeatured && matchesSales;
+  }) || [];
 
 
   return (
@@ -244,7 +290,7 @@ export default function AdminBooks() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <Button onClick={handleSearch} disabled={searching} className="rounded-lg">
+                <Button onClick={handleSearch} disabled={searching}>
                   {searching ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -317,10 +363,10 @@ export default function AdminBooks() {
             <CardHeader>
               <CardTitle>{editingBook ? 'Edit Book' : 'Add Book to Catalog'}</CardTitle>
               <CardDescription>
-                {editingBook 
-                  ? 'Update pricing and availability' 
-                  : selectedBook 
-                    ? 'Configure pricing and availability' 
+                {editingBook
+                  ? 'Update pricing and availability'
+                  : selectedBook
+                    ? 'Configure pricing and availability'
                     : 'Select a book to continue'}
               </CardDescription>
             </CardHeader>
@@ -353,16 +399,30 @@ export default function AdminBooks() {
 
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="price">Price (cents)</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        value={formData.price_cents}
-                        onChange={(e) => setFormData(prev => ({ ...prev, price_cents: parseInt(e.target.value) || 0 }))}
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        ${(formData.price_cents / 100).toFixed(2)}
-                      </p>
+                      <Label htmlFor="price">Price</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <Input
+                          id="price"
+                          type="text"
+                          value={(formData.price_cents / 100).toFixed(2)}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/[^0-9]/g, '');
+                            const cents = digits === '' ? 0 : parseInt(digits);
+                            setFormData(prev => ({ ...prev, price_cents: cents }));
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Backspace') {
+                              e.preventDefault();
+                              const currentCents = formData.price_cents;
+                              const newCents = Math.floor(currentCents / 10);
+                              setFormData(prev => ({ ...prev, price_cents: newCents }));
+                            }
+                          }}
+                          className="pl-7"
+                          placeholder="0.00"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -371,7 +431,10 @@ export default function AdminBooks() {
                         id="stock"
                         type="number"
                         value={formData.stock}
-                        onChange={(e) => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? 0 : parseInt(e.target.value);
+                          setFormData(prev => ({ ...prev, stock: value }));
+                        }}
                       />
                     </div>
 
@@ -413,11 +476,137 @@ export default function AdminBooks() {
                       />
                     </div>
 
+                    {/* Sale Section */}
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <Label htmlFor="on_sale" className="text-base font-semibold">Put on Sale</Label>
+                          <p className="text-xs text-muted-foreground">Enable special pricing</p>
+                        </div>
+                        <Switch
+                          id="on_sale"
+                          checked={formData.on_sale}
+                          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, on_sale: checked }))}
+                        />
+                      </div>
+
+                      {formData.on_sale && (
+                        <div className="space-y-4 pl-4 border-l-2 border-accent">
+                          <div className="space-y-4">
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant={formData.sale_input_mode === 'price' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setFormData(prev => ({ ...prev, sale_input_mode: 'price' }))}
+                                className="flex-1"
+                              >
+                                Set Price
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={formData.sale_input_mode === 'percentage' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setFormData(prev => ({ ...prev, sale_input_mode: 'percentage' }))}
+                                className="flex-1"
+                              >
+                                Set % Off
+                              </Button>
+                            </div>
+
+                            {formData.sale_input_mode === 'price' ? (
+                              <div>
+                                <Label htmlFor="sale_price">Sale Price</Label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                                  <Input
+                                    id="sale_price"
+                                    type="text"
+                                    value={formData.sale_price_cents ? ((typeof formData.sale_price_cents === 'string' ? parseInt(formData.sale_price_cents) : formData.sale_price_cents) / 100).toFixed(2) : '0.00'}
+                                    onChange={(e) => {
+                                      const digits = e.target.value.replace(/[^0-9]/g, '');
+                                      const cents = digits === '' ? '' : parseInt(digits).toString();
+                                      setFormData(prev => ({ ...prev, sale_price_cents: cents }));
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Backspace') {
+                                        e.preventDefault();
+                                        const currentCents = typeof formData.sale_price_cents === 'string' ? parseInt(formData.sale_price_cents) || 0 : formData.sale_price_cents;
+                                        const newCents = Math.floor(currentCents / 10);
+                                        setFormData(prev => ({ ...prev, sale_price_cents: newCents > 0 ? newCents.toString() : '' }));
+                                      }
+                                    }}
+                                    className="pl-7"
+                                    placeholder="0.00"
+                                  />
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Must be less than ${(formData.price_cents / 100).toFixed(2)}
+                                  {formData.sale_price_cents && (
+                                    <span className="text-accent font-semibold ml-2">
+                                      ({Math.round(((formData.price_cents - parseInt(formData.sale_price_cents)) / formData.price_cents) * 100)}% off)
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            ) : (
+                              <div>
+                                <Label htmlFor="sale_percentage">Percentage Off</Label>
+                                <div className="relative">
+                                  <Input
+                                    id="sale_percentage"
+                                    type="number"
+                                    min="1"
+                                    max="99"
+                                    value={formData.sale_percentage}
+                                    onChange={(e) => {
+                                      const percentage = parseInt(e.target.value) || 0;
+                                      if (percentage >= 0 && percentage <= 100) {
+                                        const salePriceCents = Math.round(formData.price_cents * (1 - percentage / 100));
+                                        setFormData(prev => ({
+                                          ...prev,
+                                          sale_percentage: e.target.value,
+                                          sale_price_cents: salePriceCents.toString()
+                                        }));
+                                      }
+                                    }}
+                                    className="pr-7"
+                                    placeholder="0"
+                                  />
+                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {formData.sale_percentage && parseInt(formData.sale_percentage) > 0 && (
+                                    <span className="text-accent font-semibold">
+                                      Sale price: ${(formData.price_cents * (1 - parseInt(formData.sale_percentage) / 100) / 100).toFixed(2)}
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          <div>
+                            <Label htmlFor="sale_ends_at">Sale Ends (optional)</Label>
+                            <Input
+                              id="sale_ends_at"
+                              type="datetime-local"
+                              value={formData.sale_ends_at}
+                              onChange={(e) => setFormData(prev => ({ ...prev, sale_ends_at: e.target.value }))}
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Leave empty for indefinite sale
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <div className="flex gap-2">
                       <Button
                         onClick={handleUpdateBook}
                         disabled={updateBookMutation.isPending}
-                        className="flex-1 bg-purple-600 hover:bg-indigo-700 rounded-lg"
+                        className="flex-1"
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Update Book
@@ -426,9 +615,8 @@ export default function AdminBooks() {
                         variant="outline"
                         onClick={() => {
                           setEditingBook(null);
-                          setFormData({ price_cents: 2999, stock: 10, active: true, featured: false, description: '' });
+                          setFormData({ price_cents: 2999, stock: 10, active: true, featured: false, description: '', on_sale: false, sale_input_mode: 'price', sale_price_cents: '', sale_percentage: '', sale_ends_at: '' });
                         }}
-                        className="rounded-lg"
                       >
                         Cancel
                       </Button>
@@ -466,16 +654,30 @@ export default function AdminBooks() {
 
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="price">Price (cents)</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        value={formData.price_cents}
-                        onChange={(e) => setFormData(prev => ({ ...prev, price_cents: parseInt(e.target.value) || 0 }))}
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        ${(formData.price_cents / 100).toFixed(2)}
-                      </p>
+                      <Label htmlFor="price">Price</Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                        <Input
+                          id="price"
+                          type="text"
+                          value={(formData.price_cents / 100).toFixed(2)}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/[^0-9]/g, '');
+                            const cents = digits === '' ? 0 : parseInt(digits);
+                            setFormData(prev => ({ ...prev, price_cents: cents }));
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Backspace') {
+                              e.preventDefault();
+                              const currentCents = formData.price_cents;
+                              const newCents = Math.floor(currentCents / 10);
+                              setFormData(prev => ({ ...prev, price_cents: newCents }));
+                            }
+                          }}
+                          className="pl-7"
+                          placeholder="0.00"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -484,7 +686,10 @@ export default function AdminBooks() {
                         id="stock"
                         type="number"
                         value={formData.stock}
-                        onChange={(e) => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? 0 : parseInt(e.target.value);
+                          setFormData(prev => ({ ...prev, stock: value }));
+                        }}
                       />
                     </div>
 
@@ -530,7 +735,7 @@ export default function AdminBooks() {
                       <Button
                         onClick={handleAddBook}
                         disabled={addBookMutation.isPending}
-                        className="flex-1 rounded-lg bg-purple-600 hover:bg-indigo-700"
+                        className="flex-1"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add to Catalog
@@ -539,9 +744,8 @@ export default function AdminBooks() {
                         variant="outline"
                         onClick={() => {
                           setSelectedBook(null);
-                          setFormData({ price_cents: 2999, stock: 10, active: true, featured: false, description: '' });
+                          setFormData({ price_cents: 2999, stock: 10, active: true, featured: false, description: '', on_sale: false, sale_input_mode: 'price', sale_price_cents: '', sale_percentage: '', sale_ends_at: '' });
                         }}
-                        className="rounded-lg"
                       >
                         Cancel
                       </Button>
@@ -561,17 +765,69 @@ export default function AdminBooks() {
       {/* Existing Books */}
       <Card>
           <CardHeader>
-            <CardTitle>Existing Books ({existingBooks?.length || 0})</CardTitle>
+            <CardTitle>Existing Books ({filteredBooks.length}{existingBooks && filteredBooks.length !== existingBooks.length ? ` of ${existingBooks.length}` : ''})</CardTitle>
             <CardDescription>Manage your book catalog</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Filter Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div>
+                <Label htmlFor="filter-search" className="text-sm">Search Books</Label>
+                <Input
+                  id="filter-search"
+                  placeholder="Title, author, ISBN..."
+                  value={filterSearch}
+                  onChange={(e) => setFilterSearch(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="filter-status" className="text-sm">Status</Label>
+                <Select value={filterStatus} onValueChange={(value: 'all' | 'active' | 'inactive') => setFilterStatus(value)}>
+                  <SelectTrigger id="filter-status">
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="filter-featured" className="text-sm">Featured</Label>
+                <Select value={filterFeatured} onValueChange={(value: 'all' | 'featured' | 'not-featured') => setFilterFeatured(value)}>
+                  <SelectTrigger id="filter-featured">
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="featured">Featured</SelectItem>
+                    <SelectItem value="not-featured">Not Featured</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="filter-sales" className="text-sm">Sales</Label>
+                <Select value={filterSales} onValueChange={(value: 'all' | 'on-sale' | 'not-on-sale') => setFilterSales(value)}>
+                  <SelectTrigger id="filter-sales">
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="on-sale">On Sale</SelectItem>
+                    <SelectItem value="not-on-sale">Not On Sale</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {booksLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map(i => <Skeleton key={i} className="h-24" />)}
               </div>
             ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {existingBooks?.map((book) => (
+              <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                {filteredBooks.map((book) => (
                   <Card key={book.id}>
                     <CardContent className="p-4">
                       <div className="flex gap-4 items-start">
@@ -588,23 +844,35 @@ export default function AdminBooks() {
                             {book.author || 'Unknown Author'}
                           </p>
                           <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                            <span>${(book.price_cents / 100).toFixed(2)}</span>
+                            {book.on_sale && book.sale_price_cents ? (
+                              <>
+                                <span className="text-accent font-semibold">${(book.sale_price_cents / 100).toFixed(2)}</span>
+                                <span className="line-through">${(book.price_cents / 100).toFixed(2)}</span>
+                              </>
+                            ) : (
+                              <span>${(book.price_cents / 100).toFixed(2)}</span>
+                            )}
                             <span>Stock: {book.stock}</span>
                             {book.isbn && <span>ISBN: {book.isbn}</span>}
                           </div>
-                          <div className="flex gap-2 mt-2">
+                          <div className="flex gap-2 mt-2 flex-wrap">
                             {book.active && (
-                              <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs font-medium">
-                                ● In Catalog
+                              <span className="status-success px-2 py-1 rounded-full text-xs font-medium">
+                                In Catalog
                               </span>
                             )}
                             {book.featured && (
-                              <span className="px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full text-xs font-medium">
-                                ⭐ Featured
+                              <span className="status-warning px-2 py-1 rounded-full text-xs font-medium">
+                                Featured
+                              </span>
+                            )}
+                            {book.on_sale && (
+                              <span className="status-sale px-2 py-1 rounded-full text-xs font-medium">
+                                {book.sale_percentage ? `${Math.round(book.sale_percentage)}% OFF` : 'On Sale'}
                               </span>
                             )}
                             {book.stock === 0 && (
-                              <span className="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs font-medium">
+                              <span className="status-error px-2 py-1 rounded-full text-xs font-medium">
                                 Sold Out
                               </span>
                             )}
@@ -616,7 +884,6 @@ export default function AdminBooks() {
                             size="icon"
                             onClick={() => handleEditBook(book)}
                             title="Edit book"
-                            className="rounded-lg"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -629,7 +896,6 @@ export default function AdminBooks() {
                                 deleteBookMutation.mutate(book.id);
                               }
                             }}
-                            className="rounded-lg"
                             disabled={deleteBookMutation.isPending}
                             title="Delete book"
                           >
@@ -640,6 +906,12 @@ export default function AdminBooks() {
                     </CardContent>
                   </Card>
                 ))}
+                {filteredBooks.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No books found matching your filters</p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

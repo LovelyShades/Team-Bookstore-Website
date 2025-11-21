@@ -1,7 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Link, Outlet, useLocation } from 'react-router-dom';
 import { UserCheck } from 'lucide-react';
-import AdminSummaryBar from '@/components/admin/AdminSummaryBar';
 
 export default function AdminDashboard() {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -34,14 +33,12 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-purple-50 pt-8">
+    <div className="min-h-screen bg-background pt-8">
       <div className="max-w-7xl mx-auto p-8">
-        <h1 className="text-3xl text-purple-600 font-bold mb-8 flex items-center gap-3">
-          <UserCheck className="h-10 w-10 text-foreground" />
-          <span className="text-purple-600">Admin</span>
+        <h1 className="text-3xl font-bold mb-8 flex items-center gap-3">
+          <UserCheck className="h-10 w-10 text-primary" />
+          <span className="text-foreground">Admin Dashboard</span>
         </h1>
-
-        <AdminSummaryBar />
 
         <div className="flex gap-6">
           <aside className="w-48 border-r pr-6">
@@ -52,7 +49,7 @@ export default function AdminDashboard() {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`block px-2 py-1 mb-1 ${active ? 'bg-purple-600 text-white rounded-lg' : ''}`}
+                    className={`block px-2 py-1 mb-1 rounded-lg transition-colors ${active ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
                   >
                     {item.label}
                   </Link>
