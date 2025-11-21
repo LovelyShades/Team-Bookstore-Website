@@ -179,18 +179,18 @@ const Cart = () => {
             {cartItems.map((item) => (
               <div
                 key={item.item_id}
-                className="bg-card backdrop-blur-sm border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-card backdrop-blur-sm border-border rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="flex gap-6">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                   <img
                     src={item.items.img_url || "/placeholder.svg"}
                     alt={item.items.name}
-                    className="h-32 w-24 object-cover rounded-lg"
+                    className="h-32 w-24 object-cover rounded-lg mx-auto sm:mx-0"
                   />
 
                   <div className="flex-1">
                     <Link to={`/book/${item.item_id}`}>
-                      <h3 className="text-xl font-bold text-foreground hover:text-primary transition-colors">
+                      <h3 className="text-lg sm:text-xl font-bold text-foreground hover:text-primary transition-colors">
                         {item.items.name}
                       </h3>
                     </Link>
@@ -199,7 +199,7 @@ const Cart = () => {
                       ${(item.items.price_cents / 100).toFixed(2)}
                     </p>
 
-                    <div className="flex items-center gap-4 mt-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-4">
                       <div className="flex items-center gap-2">
                         <Button
                           variant="outline"
@@ -250,7 +250,7 @@ const Cart = () => {
                     </div>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-center sm:text-right mt-4 sm:mt-0">
                     <p className="text-xl font-bold text-foreground">
                       ${((item.items.price_cents * item.qty) / 100).toFixed(2)}
                     </p>

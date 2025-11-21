@@ -310,7 +310,7 @@ const BookDetail = () => {
         {/* Book Details - Mobile-Friendly Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mb-12">
           {/* Column 1: Book Cover */}
-          <div className="lg:col-span-3 flex flex-col items-center lg:items-start">
+          <div className="lg:col-span-3 flex flex-col items-center lg:items-start order-first">
             <div
               className="relative group cursor-pointer w-full max-w-sm lg:max-w-none"
               onClick={() => setIsImageZoomed(true)}
@@ -514,7 +514,7 @@ const BookDetail = () => {
           </div>
 
           {/* Column 3: Price, Quantity, and Add to Cart */}
-          <div className="lg:col-span-3 order-first lg:order-last">
+          <div className="lg:col-span-3 order-2 lg:order-last">
             <div className="p-4 sm:p-6 bg-card/50 rounded-xl space-y-4 sm:space-y-6 lg:sticky lg:top-24 relative">
               {/* Demo sale badge */}
               {(() => {
