@@ -85,13 +85,13 @@ const Cart = () => {
   // --- Unauthenticated view
   if (!user) {
     return (
-      <div className="min-h-screen bg-purple-50 p-6 flex items-center justify-center">
-        <Card className="max-w-md text-center bg-white/80 backdrop-blur-sm border border-purple-100 p-8">
-          <ShoppingBag className="h-20 w-20 mx-auto mb-6 text-purple-300" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+        <Card className="max-w-md text-center bg-card backdrop-blur-sm border-border p-8">
+          <ShoppingBag className="h-20 w-20 mx-auto mb-6 text-muted" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             Sign in to view your cart
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             You need to be logged in to access your shopping cart.
           </p>
           <Link to="/auth">
@@ -107,7 +107,7 @@ const Cart = () => {
   // --- Loading skeleton
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-purple-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-6xl mx-auto space-y-6">
           <Skeleton className="h-10 w-64" />
           {[...Array(3)].map((_, i) => (
@@ -121,14 +121,14 @@ const Cart = () => {
   // --- Empty cart
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-purple-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-purple-600 mb-6">
-            🛒 Shopping Cart
+          <h1 className="text-3xl font-bold text-primary mb-6">
+            Shopping Cart
           </h1>
-          <Card className="text-center bg-white/80 backdrop-blur-sm border border-purple-100 py-12">
+          <Card className="text-center bg-card backdrop-blur-sm border-border py-12">
             <svg
-              className="w-24 h-24 mx-auto text-purple-200 mb-4"
+              className="w-24 h-24 mx-auto text-muted mb-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -140,10 +140,10 @@ const Cart = () => {
                 d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
               />
             </svg>
-            <h2 className="text-2xl font-bold text-gray-700 mb-2">
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               Your cart is empty
             </h2>
-            <p className="text-gray-500 mb-6">Add some books to get started!</p>
+            <p className="text-muted-foreground mb-6">Add some books to get started!</p>
             <Link to="/catalog">
               <Button size="lg" className="rounded-lg">Browse Books</Button>
             </Link>
@@ -155,10 +155,10 @@ const Cart = () => {
 
   // --- Main cart
   return (
-    <div className="min-h-screen bg-purple-50 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-purple-600 mb-6">
-          🛒 Shopping Cart
+        <h1 className="text-3xl font-bold text-primary mb-6">
+          Shopping Cart
         </h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -167,7 +167,7 @@ const Cart = () => {
             {cartItems.map((item) => (
               <div
                 key={item.item_id}
-                className="bg-white/80 backdrop-blur-sm border border-purple-100 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                className="bg-card backdrop-blur-sm border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="flex gap-6">
                   <img
@@ -178,12 +178,12 @@ const Cart = () => {
 
                   <div className="flex-1">
                     <Link to={`/book/${item.item_id}`}>
-                      <h3 className="text-xl font-bold text-gray-900 hover:text-purple-600 transition-colors">
+                      <h3 className="text-xl font-bold text-foreground hover:text-primary transition-colors">
                         {item.items.name}
                       </h3>
                     </Link>
-                    <p className="text-sm text-gray-500 mt-1">Various Authors</p>
-                    <p className="text-lg font-bold text-purple-600 mt-2">
+                    <p className="text-sm text-muted-foreground mt-1">Various Authors</p>
+                    <p className="text-lg font-bold text-primary mt-2">
                       ${(item.items.price_cents / 100).toFixed(2)}
                     </p>
 
@@ -224,7 +224,7 @@ const Cart = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        className="text-error hover:text-error hover:bg-destructive/10"
                         onClick={() =>
                           updateQuantityMutation.mutate({
                             itemId: item.item_id,
@@ -239,7 +239,7 @@ const Cart = () => {
                   </div>
 
                   <div className="text-right">
-                    <p className="text-xl font-bold text-gray-900">
+                    <p className="text-xl font-bold text-foreground">
                       ${((item.items.price_cents * item.qty) / 100).toFixed(2)}
                     </p>
                   </div>
@@ -250,13 +250,13 @@ const Cart = () => {
 
           {/* Order Summary */}
           <div className="lg:sticky lg:top-24 h-fit">
-            <Card className="bg-white/80 backdrop-blur-sm border border-purple-100 p-6 shadow-sm">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <Card className="bg-card backdrop-blur-sm border-border p-6 shadow-sm">
+              <h2 className="text-2xl font-bold text-foreground mb-6">
                 Order Summary
               </h2>
 
               <div className="space-y-3 mb-6">
-                <div className="flex justify-between text-gray-700">
+                <div className="flex justify-between text-foreground">
                   <span>Subtotal</span>
                   <span className="font-medium">
                     ${(subtotal / 100).toFixed(2)}
@@ -264,10 +264,10 @@ const Cart = () => {
                 </div>
               </div>
 
-              <div className="border-t border-purple-100 pt-4 mb-6">
-                <div className="flex justify-between text-gray-900 text-lg font-bold">
+              <div className="border-t border-border pt-4 mb-6">
+                <div className="flex justify-between text-foreground text-lg font-bold">
                   <span>Total</span>
-                  <span className="text-purple-600">
+                  <span className="text-primary">
                     ${(subtotal / 100).toFixed(2)}
                   </span>
                 </div>
@@ -275,7 +275,7 @@ const Cart = () => {
 
               <Button
                 size="lg"
-                className="w-full mb-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg"
+                className="btn-primary w-full mb-4"
                 onClick={() => navigate("/checkout")}
               >
                 Proceed to Checkout
@@ -284,7 +284,7 @@ const Cart = () => {
               <Link to="/catalog">
                 <Button
                   variant="ghost"
-                  className="w-full text-purple-600 hover:bg-purple-50 rounded-lg"
+                  className="w-full text-primary hover:bg-accent rounded-lg"
                 >
                   Continue Shopping
                 </Button>

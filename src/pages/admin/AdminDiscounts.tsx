@@ -158,7 +158,7 @@ export default function AdminDiscounts() {
             <Button
               onClick={() => createMutation.mutate(formData)}
               disabled={!formData.code || createMutation.isPending}
-              className="w-full rounded-lg bg-purple-600 hover:bg-indigo-700"
+              className="btn-primary w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Discount

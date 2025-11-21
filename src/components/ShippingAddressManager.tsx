@@ -24,7 +24,6 @@ const COUNTRIES = [
   { value: 'MX', label: 'Mexico' },
   { value: 'GB', label: 'United Kingdom' },
   { value: 'AU', label: 'Australia' },
-  // Add more countries as needed
 ];
 
 const US_STATES = [
@@ -52,16 +51,14 @@ export default function ShippingAddressManager() {
     is_default: false,
   });
 
-  // Fetch user's shipping addresses
   const { data: addresses = [], isLoading } = useQuery({
     queryKey: ['shipping-addresses', user?.id],
     queryFn: () => user ? shippingAddressService.getUserShippingAddresses(user.id) : [],
     enabled: !!user,
   });
 
-  // Create address mutation
   const createAddressMutation = useMutation({
-    mutationFn: (data: CreateShippingAddressData) => 
+    mutationFn: (data: CreateShippingAddressData) =>
       shippingAddressService.createShippingAddress(user!.id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shipping-addresses'] });
@@ -74,7 +71,6 @@ export default function ShippingAddressManager() {
     },
   });
 
-  // Update address mutation
   const updateAddressMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateShippingAddressData }) =>
       shippingAddressService.updateShippingAddress(id, data),
@@ -89,7 +85,6 @@ export default function ShippingAddressManager() {
     },
   });
 
-  // Delete address mutation
   const deleteAddressMutation = useMutation({
     mutationFn: (addressId: string) => shippingAddressService.deleteShippingAddress(addressId),
     onSuccess: () => {
@@ -102,7 +97,6 @@ export default function ShippingAddressManager() {
     },
   });
 
-  // Set default address mutation
   const setDefaultMutation = useMutation({
     mutationFn: (addressId: string) => shippingAddressService.setDefaultAddress(addressId),
     onSuccess: () => {
@@ -133,7 +127,7 @@ export default function ShippingAddressManager() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const errors = shippingAddressService.validateAddress(formData);
     if (errors.length > 0) {
       toast.error(errors[0]);
@@ -194,12 +188,15 @@ export default function ShippingAddressManager() {
 
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { resetForm(); setIsFormOpen(true); }}
-              className="rounded-lg bg-purple-600 hover:bg-indigo-700">
+            <Button
+              onClick={() => { resetForm(); setIsFormOpen(true); }}
+              className="btn-primary"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Address
             </Button>
           </DialogTrigger>
+
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>
@@ -209,7 +206,7 @@ export default function ShippingAddressManager() {
                 {editingAddress ? 'Update your shipping address details' : 'Add a new shipping address to your account'}
               </DialogDescription>
             </DialogHeader>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
@@ -257,8 +254,8 @@ export default function ShippingAddressManager() {
                 <div>
                   <Label htmlFor="state">State/Province</Label>
                   {formData.country === 'US' ? (
-                    <Select 
-                      value={formData.state} 
+                    <Select
+                      value={formData.state}
                       onValueChange={(value) => setFormData(prev => ({ ...prev, state: value }))}
                     >
                       <SelectTrigger>
@@ -293,8 +290,8 @@ export default function ShippingAddressManager() {
 
                 <div>
                   <Label htmlFor="country">Country *</Label>
-                  <Select 
-                    value={formData.country} 
+                  <Select
+                    value={formData.country}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, country: value }))}
                   >
                     <SelectTrigger>
@@ -326,7 +323,7 @@ export default function ShippingAddressManager() {
                     <Checkbox
                       id="is_default"
                       checked={formData.is_default}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         setFormData(prev => ({ ...prev, is_default: checked as boolean }))
                       }
                     />
@@ -336,14 +333,19 @@ export default function ShippingAddressManager() {
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={resetForm}
-                  className="rounded-lg">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetForm}
+                  className="rounded-lg"
+                >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+
+                <Button
+                  type="submit"
                   disabled={createAddressMutation.isPending || updateAddressMutation.isPending}
-                  className="rounded-lg bg-purple-600 text-white hover:bg-purple-700 px-4 py-2"
+                  className="btn-primary"
                 >
                   {editingAddress ? 'Update Address' : 'Add Address'}
                 </Button>
@@ -403,6 +405,7 @@ export default function ShippingAddressManager() {
                   </div>
                 </div>
               </CardHeader>
+
               <CardContent>
                 <div className="text-sm text-muted-foreground whitespace-pre-line">
                   {shippingAddressService.formatAddress(address, true)}
@@ -417,8 +420,10 @@ export default function ShippingAddressManager() {
             <p className="text-muted-foreground mb-4">
               Add your first shipping address to get started
             </p>
-            <Button onClick={() => { resetForm(); setIsFormOpen(true); }}
-              className="rounded-lg bg-purple-600 hover:bg-indigo-700">
+            <Button
+              onClick={() => { resetForm(); setIsFormOpen(true); }}
+              className="btn-primary"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Your First Address
             </Button>

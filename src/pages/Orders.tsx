@@ -222,11 +222,11 @@ const Orders = () => {
     console.log('Item fulfillment status:', status);
     
     const configs = {
-      pending: { badge: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      processing: { badge: 'Processing', color: 'bg-orange-100 text-orange-800', icon: Package2 },
-      shipped: { badge: 'Shipped', color: 'bg-purple-100 text-purple-800', icon: Truck },
-      delivered: { badge: 'Delivered', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      cancelled: { badge: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle },
+      pending: { badge: 'Pending', color: 'status-warning', icon: Clock },
+      processing: { badge: 'Processing', color: 'status-info', icon: Package2 },
+      shipped: { badge: 'Shipped', color: 'status-info', icon: Truck },
+      delivered: { badge: 'Delivered', color: 'status-success', icon: CheckCircle },
+      cancelled: { badge: 'Cancelled', color: 'status-error', icon: XCircle },
     };
     
     const config = configs[status as keyof typeof configs] || configs.pending;
@@ -368,11 +368,11 @@ const Orders = () => {
               <Badge 
                 variant="secondary" 
                 className={`mt-2 ${
-                  status === 'delivered' 
-                    ? 'bg-green-100 text-green-800' 
-                    : status === 'shipped' 
-                    ? 'bg-purple-100 text-purple-800'
-                    : 'bg-blue-100 text-blue-800'
+                  status === 'delivered'
+                    ? 'status-success'
+                    : status === 'shipped'
+                    ? 'status-info'
+                    : 'status-info'
                 }`}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -524,13 +524,13 @@ const Orders = () => {
 
   if (!user) {
     return (
-        <div className="min-h-screen bg-purple-50 p-6 flex items-center justify-center">        
-          <Card className="max-w-md text-center bg-white/80 backdrop-blur-sm border border-purple-100 p-8">
-            <Calendar className="h-20 w-20 mx-auto mb-6 text-purple-300" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+          <Card className="max-w-md text-center bg-card backdrop-blur-sm border-border p-8">
+            <Calendar className="h-20 w-20 mx-auto mb-6 text-muted" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               Sign in to view your orders
             </h2>
-            <p className="text-gray-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               You need to be logged in to access your order history.
             </p>
             <Link to="/auth">
@@ -545,7 +545,7 @@ const Orders = () => {
 
   if (loadingMyOrders) {
     return (
-      <div className="min-h-screen bg-purple-50 pt-16">
+      <div className="min-h-screen bg-background pt-16">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
@@ -558,11 +558,11 @@ const Orders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-purple-50 pt-16">
+    <div className="min-h-screen bg-background pt-16">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold mb-8 flex items-center gap-3">
-          <CalendarDays className="h-10 w-10" />
-          <span className="text-purple-700">
+          <CalendarDays className="h-10 w-10 text-primary" />
+          <span className="text-primary">
             {isAdmin ? 'Orders Management' : 'My Orders'}
           </span>
         </h1>

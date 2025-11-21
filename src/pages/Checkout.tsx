@@ -205,11 +205,11 @@ const Checkout = () => {
   const total = afterDiscount + tax;
 
   return (
-    <div className="min-h-screen bg-purple-50 pt-16">
+    <div className="min-h-screen bg-background pt-16">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold mb-8 flex items-center gap-3">
           <ShoppingBag className="h-10 w-10 text-foreground" />
-          <span className="text-purple-600">Checkout</span>
+          <span className="text-primary">Checkout</span>
         </h1>
 
 
@@ -420,7 +420,7 @@ const Checkout = () => {
         {/* Place Order */}
         <Button
           size="lg"
-          className="w-full rounded-lg bg-purple-600 text-white hover:bg-purple-700 px-4 py-2"
+          className="btn-primary w-full"
           onClick={() => checkoutMutation.mutate()}
           disabled={checkoutMutation.isPending}
         >

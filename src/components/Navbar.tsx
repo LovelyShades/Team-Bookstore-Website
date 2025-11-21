@@ -32,7 +32,7 @@ export const Navbar = () => {
   return (
     <nav className="border-b bg-white p-4">
       <div className="max-w-7xl mx-auto flex justify-between">
-        <Link to="/" className="font-bold">Bookstore</Link>
+        <Link to="/" className="font-bold">Hearts & Pages</Link>
         <div className="flex gap-4">
           <Link to="/catalog">Catalog</Link>
           <Link to="/discounts">Sale</Link>

@@ -24,9 +24,9 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-purple-50 pt-16">
+    <div className="min-h-screen bg-background pt-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-4xl font-bold text-purple-600 mb-8">My Account</h1>
+        <h1 className="text-4xl font-bold text-primary mb-8">My Account</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* User Info Sidebar */}

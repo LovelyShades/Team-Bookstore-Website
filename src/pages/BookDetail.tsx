@@ -241,7 +241,7 @@ const BookDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-purple-50 pt-16">
+    <div className="min-h-screen bg-background pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 relative z-10">
         {/* Back Button */}
         <Link to="/catalog">
@@ -288,21 +288,21 @@ const BookDetail = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => handleShare('facebook')}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-info text-white rounded-lg hover:opacity-90 transition-all"
                 >
                   <Facebook size={18} />
                   <span className="text-sm font-medium">Share</span>
                 </button>
                 <button
                   onClick={() => handleShare('twitter')}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-black to-gray-800 text-white rounded-lg hover:from-gray-800 hover:to-gray-900 transition-all"
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-all"
                 >
                   <XIcon size={18} />
                   <span className="text-sm font-medium">Post</span>
                 </button>
                 <button
                   onClick={() => handleShare('instagram')}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white rounded-lg hover:from-purple-700 hover:via-pink-700 hover:to-orange-600 transition-all"
+                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-warm text-accent-foreground rounded-lg hover:opacity-90 transition-all"
                 >
                   <Instagram size={18} />
                   <span className="text-sm font-medium">Post</span>
@@ -438,7 +438,7 @@ const BookDetail = () => {
                 const salePercent = lastDigit === 0 ? 15 : lastDigit === 5 ? 20 : 0;
                 
                 return isOnSale ? (
-                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10 flex items-center gap-1">
+                  <div className="absolute -top-3 -right-3 bg-gradient-warm text-accent-foreground px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10 flex items-center gap-1">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
                       <line x1="7" y1="7" x2="7.01" y2="7"></line>
@@ -538,7 +538,7 @@ const BookDetail = () => {
               {/* Add to Cart Button */}
               <Button
                 size="lg"
-                className="w-full bg-purple-600 text-white hover:bg-indigo-700 rounded-lg"
+                className="btn-primary w-full"
                 disabled={book.stock === 0}
                 onClick={() => addToCartMutation.mutate()}
               >
