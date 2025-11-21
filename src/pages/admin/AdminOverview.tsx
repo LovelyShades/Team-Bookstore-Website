@@ -58,7 +58,7 @@ export default function AdminOverview() {
       title: 'Total Revenue',
       value: stats?.totalRevenue || 0,
       icon: DollarSign,
-      color: 'text-success',
+      color: 'text-accent',
       showCountUp: true,
       isCurrency: true,
     },
@@ -66,7 +66,7 @@ export default function AdminOverview() {
       title: 'Orders Today',
       value: stats?.ordersToday || 0,
       icon: CalendarDays,
-      color: 'text-info',
+      color: 'text-accent',
       showCountUp: true,
     },
     {
@@ -187,23 +187,38 @@ export default function AdminOverview() {
 
       <Card className="mt-8">
         <CardHeader>
-          <div className="flex gap-2">
-            <BarChart2 className="h-7 w-7 text-primary" />
-            <span className="text-lg font-semibold">Order Stats</span>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex gap-2">
+              <BarChart2 className="h-7 w-7 text-primary" />
+              <span className="text-lg font-semibold">Order Stats</span>
+            </div>
+            <Tabs defaultValue={view} onValueChange={(v) => setView(v as typeof view)} className="sm:hidden">
+              <TabsList className="grid grid-cols-3 w-full">
+                {(['daily', 'weekly', 'monthly'] as const).map((v) => (
+                  <TabsTrigger
+                    key={v}
+                    value={v}
+                    className="bg-transparent text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    {v.charAt(0).toUpperCase() + v.slice(1)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </div>
         </CardHeader>
-        <CardContent className="h-96 w-full flex items-center">
-          <div className="flex-1 h-full">
+        <CardContent className="p-4 sm:p-6">
+          <div className="h-80 sm:h-96 w-full">
             {chartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-muted-foreground">
                 <p>No order data available</p>
               </div>
             ) : (
-              <ChartContainer config={chartConfig} className="h-full">
+              <ChartContainer config={chartConfig} className="h-full w-full">
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <XAxis dataKey="date" className="text-xs" />
+                  <YAxis className="text-xs" />
                   <Tooltip content={<ChartTooltipContent />} />
                   <Legend content={<ChartLegendContent />} />
                   <Line
@@ -216,19 +231,6 @@ export default function AdminOverview() {
               </ChartContainer>
             )}
           </div>
-          <Tabs defaultValue={view} onValueChange={(v) => setView(v as typeof view)}>
-            <TabsList className="translate-x-[-36px] -translate-y-40">
-              {(['daily', 'weekly', 'monthly'] as const).map((v) => (
-                <TabsTrigger
-                  key={v}
-                  value={v}
-                  className="w-full bg-transparent text-foreground data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                >
-                  {v.charAt(0).toUpperCase() + v.slice(1)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
         </CardContent>
       </Card>
     </div>

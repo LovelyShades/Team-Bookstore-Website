@@ -8,9 +8,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
 import { BookCard } from '@/components/BookCard';
+import { Grid3x3, List, BookOpen } from 'lucide-react';
 
 const Catalog = () => {
   const { isAdmin } = useAuth();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [filters, setFilters] = useState({
     q: "",
     sort: "created_at",
@@ -80,13 +82,18 @@ const Catalog = () => {
 
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-primary mb-2">
-              Book Catalog
-            </h1>
-            <p className="text-muted-foreground">
-              Discover your next great read
-            </p>
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-warm p-3 rounded-xl">
+              <BookOpen className="h-8 w-8 text-accent-foreground" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-foreground mb-2">
+                Book Catalog
+              </h1>
+              <p className="text-muted-foreground">
+                Discover your next great read
+              </p>
+            </div>
           </div>
           {isAdmin && (
             <Link
@@ -150,63 +157,174 @@ const Catalog = () => {
           </form>
         </Card>
 
-        {/* Results count */}
-        <div className="text-sm text-muted-foreground">
-          {items.length === 0 ? (
-            <p>No items found. Try adjusting your filters.</p>
-          ) : (
-            <p>
-              Showing{" "}
-              <span className="font-semibold text-foreground">{items.length}</span>{" "}
-              {items.length === 1 ? "book" : "books"}
-            </p>
-          )}
+        {/* Results count and view toggle */}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {items.length === 0 ? (
+              <p>No items found. Try adjusting your filters.</p>
+            ) : (
+              <p>
+                Showing{" "}
+                <span className="font-semibold text-foreground">{items.length}</span>{" "}
+                {items.length === 1 ? "book" : "books"}
+              </p>
+            )}
+          </div>
+
+          {/* View Mode Toggle */}
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className={viewMode === 'grid' ? 'btn-primary' : ''}
+            >
+              <Grid3x3 className="h-4 w-4 mr-2" />
+              Grid
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className={viewMode === 'list' ? 'btn-primary' : ''}
+            >
+              <List className="h-4 w-4 mr-2" />
+              List
+            </Button>
+          </div>
         </div>
 
-        {/* Items grid */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {isLoading
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-96 bg-muted animate-pulse rounded-lg"
-                />
-              ))
-            : items.map((item) => {
-                const displayPrice = item.sale_price_cents
-                  ? `$${(item.sale_price_cents / 100).toFixed(2)}`
-                  : `$${(item.price_cents / 100).toFixed(2)}`;
+        {/* Items display - Grid or List */}
+        {viewMode === 'grid' ? (
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {isLoading
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-96 bg-muted animate-pulse rounded-lg"
+                  />
+                ))
+              : items.map((item) => {
+                  const displayPrice = item.sale_price_cents
+                    ? `$${(item.sale_price_cents / 100).toFixed(2)}`
+                    : `$${(item.price_cents / 100).toFixed(2)}`;
 
-                const originalPrice = item.sale_price_cents
-                  ? `$${(item.price_cents / 100).toFixed(2)}`
-                  : undefined;
+                  const originalPrice = item.sale_price_cents
+                    ? `$${(item.price_cents / 100).toFixed(2)}`
+                    : undefined;
 
-                return (
-                  <Link key={item.id} to={`/book/${item.id}`}>
-                    <div className="relative">
+                  return (
+                    <Link key={item.id} to={`/book/${item.id}`}>
+                      <div className="relative">
+                        {item.on_sale && item.sale_percentage && (
+                          <div className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground px-2 py-1 rounded-md text-xs font-bold shadow-lg">
+                            {Math.round(item.sale_percentage)}% OFF
+                          </div>
+                        )}
+                        <BookCard
+                          title={item.name}
+                          author={item.author || 'Unknown Author'}
+                          price={displayPrice}
+                          originalPrice={originalPrice}
+                          image={item.img_url || '/placeholder.svg'}
+                          stock={item.stock}
+                          onSale={item.on_sale || false}
+                          compact={true}
+                        />
+                      </div>
+                    </Link>
+                  );
+                })}
+          </section>
+        ) : (
+          <section className="space-y-4">
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-32 bg-muted animate-pulse rounded-lg"
+                  />
+                ))
+              : items.map((item) => {
+                  const displayPrice = item.sale_price_cents
+                    ? `$${(item.sale_price_cents / 100).toFixed(2)}`
+                    : `$${(item.price_cents / 100).toFixed(2)}`;
 
-                      {/* Sale Tag (now works!) */}
-                      {item.on_sale && item.sale_percentage && (
-                        <div className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground px-2 py-1 rounded-md text-xs font-bold shadow-lg">
-                          {Math.round(item.sale_percentage)}% OFF
+                  const originalPrice = item.sale_price_cents
+                    ? `$${(item.price_cents / 100).toFixed(2)}`
+                    : undefined;
+
+                  return (
+                    <Link key={item.id} to={`/book/${item.id}`}>
+                      <Card className="hover:shadow-lg transition-shadow">
+                        <div className="flex gap-4 p-4">
+                          {/* Book Image */}
+                          <div className="relative w-24 h-32 flex-shrink-0">
+                            <img
+                              src={item.img_url || '/placeholder.svg'}
+                              alt={item.name}
+                              className="w-full h-full object-cover rounded-md"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder.svg';
+                              }}
+                            />
+                            {item.stock === 0 && (
+                              <div className="absolute top-1 right-1 bg-destructive text-destructive-foreground text-xs px-1 py-0.5 rounded">
+                                Out
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Book Info */}
+                          <div className="flex-1 flex flex-col justify-between">
+                            <div>
+                              <div className="flex items-start justify-between gap-2">
+                                <h3 className="font-bold text-foreground text-lg line-clamp-2 hover:text-accent transition-colors">
+                                  {item.name}
+                                </h3>
+                                {item.on_sale && item.sale_percentage && (
+                                  <span className="bg-accent text-accent-foreground px-2 py-1 rounded-md text-xs font-bold whitespace-nowrap">
+                                    {Math.round(item.sale_percentage)}% OFF
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-muted-foreground text-sm mt-1">
+                                {item.author || 'Unknown Author'}
+                              </p>
+                              {item.description && (
+                                <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl font-bold text-foreground">
+                                  {displayPrice}
+                                </span>
+                                {originalPrice && item.on_sale && (
+                                  <span className="text-sm line-through text-muted-foreground">
+                                    {originalPrice}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {item.stock > 0 ? (
+                                  <span className="text-success">In Stock: {item.stock}</span>
+                                ) : (
+                                  <span className="text-destructive">Out of Stock</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      )}
-
-                      <BookCard
-                        title={item.name}
-                        author={item.author || 'Unknown Author'}
-                        price={displayPrice}
-                        originalPrice={originalPrice}
-                        image={item.img_url || '/placeholder.svg'}
-                        stock={item.stock}
-                        onSale={item.on_sale || false}
-                        compact={true}
-                      />
-                    </div>
-                  </Link>
-                );
-              })}
-        </section>
+                      </Card>
+                    </Link>
+                  );
+                })}
+          </section>
+        )}
 
         {/* Empty state */}
         {items.length === 0 && !isLoading && (

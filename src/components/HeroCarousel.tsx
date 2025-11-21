@@ -74,19 +74,45 @@ export const HeroCarousel = () => {
                   className="
                     flex flex-col md:flex-row
                     items-center justify-between
-                    gap-10
+                    gap-6 md:gap-10
                     w-full
                     md:ml-6 lg:ml-10
                   "
                 >
+                  {/* ===== BOOK IMAGE (Mobile First) ===== */}
+                  <div
+                    className="
+                      w-full md:w-[53%] md:hidden
+                      flex justify-center items-center
+                    "
+                  >
+                    <div className="relative">
+                      {/* Sale tag */}
+                      {book.on_sale && book.sale_percentage && (
+                        <div className="absolute top-2 left-2 z-10 bg-accent text-accent-foreground px-3 py-1 rounded-md text-xs font-bold shadow-lg">
+                          {Math.round(book.sale_percentage)}% OFF
+                        </div>
+                      )}
+
+                      <img
+                        src={book.img_url || "/placeholder.svg"}
+                        alt={book.name}
+                        className="
+                          h-[280px] sm:h-[320px]
+                          object-contain rounded-lg
+                        "
+                      />
+                    </div>
+                  </div>
+
                   {/* ===== LEFT: WHITE CARD ===== */}
                   <div className="w-full md:w-[47%]">
                     <div
                       className="
                         bg-white/80 backdrop-blur-xl
-                        rounded-xl border border-white/40 p-8
+                        rounded-xl border border-white/40 p-6 sm:p-8
 
-                        h-[340px] md:h-[380px] lg:h-[420px]
+                        h-auto md:h-[380px] lg:h-[420px]
                         grid grid-rows-[auto,1fr,auto] gap-3
                       "
                     >
@@ -143,11 +169,12 @@ export const HeroCarousel = () => {
                     </div>
                   </div>
 
-                  {/* ===== RIGHT: BOOK IMAGE + SALE TAG ===== */}
+                  {/* ===== RIGHT: BOOK IMAGE + SALE TAG (Desktop Only) ===== */}
                   <div
                     className="
+                      hidden md:flex
                       w-full md:w-[53%]
-                      flex justify-end items-center
+                      justify-end items-center
                       md:mr-10 lg:mr-20
                     "
                   >
@@ -163,7 +190,7 @@ export const HeroCarousel = () => {
                         src={book.img_url || "/placeholder.svg"}
                         alt={book.name}
                         className="
-                          h-[340px] md:h-[380px] lg:h-[420px]
+                          h-[380px] lg:h-[420px]
                           object-contain rounded-lg
                         "
                       />

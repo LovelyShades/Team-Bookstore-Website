@@ -22,7 +22,8 @@ import {
   Calendar,
   ShoppingBag,
   Package2,
-  XCircle
+  XCircle,
+   User,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Order as OrderType, OrderItem as OrderItemType, Item, ShippingAddress } from '@/types';
@@ -208,10 +209,10 @@ const Orders = () => {
     
     if (!itemFulfillment) {
       console.log('No fulfillment found, returning Ordered status');
-      return { 
-        status: 'ordered', 
-        badge: 'Ordered', 
-        color: 'bg-blue-100 text-blue-800', 
+      return {
+        status: 'ordered',
+        badge: 'Ordered',
+        color: 'status-info',
         icon: Package,
         tracking: null,
         shippedAt: null
@@ -569,45 +570,47 @@ const Orders = () => {
 
         {isAdmin ? (
           <Tabs defaultValue="my-orders" className="space-y-6">
-            <TabsList className="bg-card border border-border p-1">
-              <TabsTrigger 
+            <TabsList className="bg-card border border-border p-1 grid grid-cols-2 w-full">
+              <TabsTrigger
                 value="my-orders"
-                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft"
+                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft flex items-center justify-center gap-2"
               >
-                My Orders
+                <User className="h-5 w-5 md:h-4 md:w-4" />
+                <span className="hidden md:inline">My Orders</span>
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="all-orders"
-                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft"
+                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft flex items-center justify-center gap-2"
               >
-                All Orders (Admin)
+                <ShoppingBag className="h-5 w-5 md:h-4 md:w-4" />
+                <span className="hidden md:inline">All Orders</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="my-orders">
               {/* Nested tabs for admin's personal orders */}
               <Tabs defaultValue="upcoming" className="space-y-6">
-                <TabsList className="bg-muted border border-border p-1">
-                  <TabsTrigger 
+                <TabsList className="bg-muted border border-border p-1 grid grid-cols-3 w-full">
+                  <TabsTrigger
                     value="upcoming"
-                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex items-center justify-center gap-2"
                   >
-                    <Truck className="h-4 w-4 mr-2" />
-                    Upcoming Deliveries ({upcomingOrders.length})
+                    <Truck className="h-5 w-5 md:h-4 md:w-4" />
+                    <span className="hidden lg:inline">Upcoming ({upcomingOrders.length})</span>
                   </TabsTrigger>
-                  <TabsTrigger 
+                  <TabsTrigger
                     value="history"
-                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex items-center justify-center gap-2"
                   >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Purchase History ({completedOrders.length})
+                    <CheckCircle className="h-5 w-5 md:h-4 md:w-4" />
+                    <span className="hidden lg:inline">History ({completedOrders.length})</span>
                   </TabsTrigger>
-                  <TabsTrigger 
+                  <TabsTrigger
                     value="cancelled"
-                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                    className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex items-center justify-center gap-2"
                   >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    Cancelled Orders ({cancelledOrders.length})
+                    <XCircle className="h-5 w-5 md:h-4 md:w-4" />
+                    <span className="hidden lg:inline">Cancelled ({cancelledOrders.length})</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -665,27 +668,27 @@ const Orders = () => {
           </Tabs>
         ) : (
           <Tabs defaultValue="upcoming" className="space-y-6">
-            <TabsList className="bg-card border border-border p-1">
-              <TabsTrigger 
+            <TabsList className="bg-card border border-border p-1 grid grid-cols-3 w-full">
+              <TabsTrigger
                 value="upcoming"
-                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft"
+                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft flex items-center justify-center gap-2"
               >
-                <Truck className="h-4 w-4 mr-2" />
-                Upcoming Deliveries ({upcomingOrders.length})
+                <Truck className="h-5 w-5 md:h-4 md:w-4" />
+                <span className="hidden lg:inline">Upcoming ({upcomingOrders.length})</span>
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="history"
-                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft"
+                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft flex items-center justify-center gap-2"
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Purchase History ({completedOrders.length})
+                <CheckCircle className="h-5 w-5 md:h-4 md:w-4" />
+                <span className="hidden lg:inline">History ({completedOrders.length})</span>
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="cancelled"
-                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft"
+                className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground data-[state=active]:shadow-soft flex items-center justify-center gap-2"
               >
-                <XCircle className="h-4 w-4 mr-2" />
-                Cancelled Orders ({cancelledOrders.length})
+                <XCircle className="h-5 w-5 md:h-4 md:w-4" />
+                <span className="hidden lg:inline">Cancelled ({cancelledOrders.length})</span>
               </TabsTrigger>
             </TabsList>
 

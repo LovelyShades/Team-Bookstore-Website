@@ -25,6 +25,14 @@
     --input: 20 10% 88%;
     --ring: 20 40% 45%;
     --radius: 0.5rem;
+
+    /* Semantic colors */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 100%;
+    --warning: 45 93% 47%;
+    --warning-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -47,6 +55,14 @@
     --border: 20 5% 20%;
     --input: 20 5% 20%;
     --ring: 20 60% 55%;
+
+    /* Semantic colors - dark mode */
+    --success: 142 71% 50%;
+    --success-foreground: 0 0% 100%;
+    --info: 217 91% 65%;
+    --info-foreground: 0 0% 100%;
+    --warning: 45 93% 55%;
+    --warning-foreground: 0 0% 100%;
   }
 }
 
@@ -140,21 +156,37 @@
     @apply bg-gradient-warm text-accent-foreground hover:opacity-90 transition-all rounded-lg px-4 py-2 font-medium;
   }
 
-  /* Text color utilities */
+  /* Text color utilities using CSS variables */
   .text-success {
-    @apply text-green-600 dark:text-green-400;
+    color: hsl(var(--success));
   }
 
   .text-warning {
-    @apply text-yellow-600 dark:text-yellow-400;
+    color: hsl(var(--warning));
   }
 
   .text-error {
-    @apply text-red-600 dark:text-red-400;
+    color: hsl(var(--destructive));
   }
 
   .text-info {
-    @apply text-blue-600 dark:text-blue-400;
+    color: hsl(var(--info));
+  }
+
+  /* Background color utilities */
+  .bg-success {
+    background-color: hsl(var(--success));
+    color: hsl(var(--success-foreground));
+  }
+
+  .bg-info {
+    background-color: hsl(var(--info));
+    color: hsl(var(--info-foreground));
+  }
+
+  .bg-warning {
+    background-color: hsl(var(--warning));
+    color: hsl(var(--warning-foreground));
   }
 }
 
