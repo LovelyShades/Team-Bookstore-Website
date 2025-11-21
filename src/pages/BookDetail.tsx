@@ -8,26 +8,45 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
-import { ArrowLeft, ShoppingCart, BookOpen, Calendar, User, Hash, FileText, ChevronDown, Heart, Share2, Facebook, Instagram, ZoomIn, Star } from 'lucide-react';
+import {
+  ArrowLeft,
+  ShoppingCart,
+  BookOpen,
+  Calendar,
+  User,
+  Hash,
+  FileText,
+  ChevronDown,
+  Heart,
+  Share2,
+  Facebook,
+  Instagram,
+  ZoomIn,
+  Star,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Item } from '@/types';
 import { bookService } from '@/services/bookService';
 
 // Custom X (formerly Twitter) icon
-const XIcon = ({ size = 24, className = "" }: { size?: number; className?: string }) => (
-  <svg 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
+const XIcon = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
     fill="currentColor"
     className={className}
   >
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
   </svg>
 );
 
 const BookDetail = () => {
   const { id } = useParams<{ id: string }>();
+
+  // ✅ force a plain string for all DB operations
+  const bookId = id ?? '';
+
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
@@ -37,17 +56,18 @@ const BookDetail = () => {
   const [isFavorited, setIsFavorited] = useState(false);
 
   const { data: book, isLoading } = useQuery({
-    queryKey: ['item', id],
+    queryKey: ['item', bookId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('items')
         .select('*')
-        .eq('id', id)
+        .eq('id', bookId)
         .single();
-      
+
       if (error) throw error;
       return data as Item;
     },
+    enabled: !!bookId,
   });
 
   // Fetch enriched data from Google Books if ISBN exists
@@ -61,19 +81,19 @@ const BookDetail = () => {
   });
 
   const { data: relatedBooks = [] } = useQuery({
-    queryKey: ['related-items', id],
+    queryKey: ['related-items', bookId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('items')
         .select('*')
         .eq('active', true)
-        .neq('id', id)
+        .neq('id', bookId)
         .limit(5);
-      
+
       if (error) throw error;
       return data as Item[];
     },
-    enabled: !!id,
+    enabled: !!bookId,
   });
 
   // Track recently viewed books and check wishlist status
@@ -81,12 +101,18 @@ const BookDetail = () => {
     if (book) {
       // Track recently viewed
       const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
-      const bookData = { id: book.id, name: book.name, price_cents: book.price_cents, img_url: book.img_url, author: book.author };
-      
+      const bookData = {
+        id: book.id,
+        name: book.name,
+        price_cents: book.price_cents,
+        img_url: book.img_url,
+        author: book.author,
+      };
+
       const filtered = recentlyViewed.filter((b: any) => b.id !== book.id);
       const updated = [bookData, ...filtered].slice(0, 6);
       localStorage.setItem('recentlyViewed', JSON.stringify(updated));
-      
+
       // Check if in wishlist
       const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
       setIsFavorited(wishlist.some((b: any) => b.id === book.id));
@@ -114,7 +140,7 @@ const BookDetail = () => {
           .insert({ user_id: user.id })
           .select('id')
           .single();
-        
+
         if (error) throw error;
         cart = newCart;
       }
@@ -124,7 +150,7 @@ const BookDetail = () => {
         .from('cart_items')
         .select('qty')
         .eq('cart_id', cart.id)
-        .eq('item_id', id)
+        .eq('item_id', bookId) // ✅ use bookId (string)
         .single();
 
       if (existingItem) {
@@ -133,8 +159,8 @@ const BookDetail = () => {
           .from('cart_items')
           .update({ qty: existingItem.qty + quantity })
           .eq('cart_id', cart.id)
-          .eq('item_id', id);
-        
+          .eq('item_id', bookId); // ✅ use bookId
+
         if (error) throw error;
       } else {
         // Insert new item
@@ -142,10 +168,10 @@ const BookDetail = () => {
           .from('cart_items')
           .insert({
             cart_id: cart.id,
-            item_id: id,
+            item_id: bookId, // ✅ use bookId
             qty: quantity,
           });
-        
+
         if (error) throw error;
       }
     },
@@ -153,11 +179,10 @@ const BookDetail = () => {
       queryClient.invalidateQueries({ queryKey: ['cart-count'] });
       toast.success('Added to cart!');
     },
-    onError: (error) => {
-      if (error.message == 'User not signed in') {
+    onError: (error: any) => {
+      if (error?.message === 'User not signed in') {
         return;
       }
-
       toast.error('Failed to add to cart');
     },
   });
@@ -165,11 +190,13 @@ const BookDetail = () => {
   const handleShare = (platform: string) => {
     const url = window.location.href;
     const text = `Check out ${book?.name}!`;
-    
+
     const shareUrls: Record<string, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
-      instagram: 'https://www.instagram.com/'
+      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(
+        text,
+      )}`,
+      instagram: 'https://www.instagram.com/',
     };
 
     if (platform === 'instagram') {
@@ -183,10 +210,16 @@ const BookDetail = () => {
 
   const toggleFavorite = () => {
     if (!book) return;
-    
+
     const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
-    const bookData = { id: book.id, name: book.name, price_cents: book.price_cents, img_url: book.img_url, author: book.author };
-    
+    const bookData = {
+      id: book.id,
+      name: book.name,
+      price_cents: book.price_cents,
+      img_url: book.img_url,
+      author: book.author,
+    };
+
     if (isFavorited) {
       const filtered = wishlist.filter((b: any) => b.id !== book.id);
       localStorage.setItem('wishlist', JSON.stringify(filtered));
@@ -202,9 +235,27 @@ const BookDetail = () => {
 
   // Mock review data (you can replace with real data from database)
   const mockReviews = [
-    { id: 1, name: 'Sarah M.', rating: 5, date: '2024-11-15', text: `Absolutely loved "${book?.name}"! The writing is captivating and the story kept me hooked from start to finish.` },
-    { id: 2, name: 'John D.', rating: 4, date: '2024-11-10', text: `"${book?.name}" exceeded my expectations. Well-written and engaging throughout.` },
-    { id: 3, name: 'Emily R.', rating: 5, date: '2024-11-05', text: `One of the best books I've read this year! Highly recommend "${book?.name}".` }
+    {
+      id: 1,
+      name: 'Sarah M.',
+      rating: 5,
+      date: '2024-11-15',
+      text: `Absolutely loved "${book?.name}"! The writing is captivating and the story kept me hooked from start to finish.`,
+    },
+    {
+      id: 2,
+      name: 'John D.',
+      rating: 4,
+      date: '2024-11-10',
+      text: `"${book?.name}" exceeded my expectations. Well-written and engaging throughout.`,
+    },
+    {
+      id: 3,
+      name: 'Emily R.',
+      rating: 5,
+      date: '2024-11-05',
+      text: `One of the best books I've read this year! Highly recommend "${book?.name}".`,
+    },
   ];
 
   if (isLoading) {
@@ -245,67 +296,75 @@ const BookDetail = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-4 relative z-10">
         {/* Back Button */}
         <Link to="/catalog">
-          <Button variant="ghost" className="mb-4 bg-background/80 hover:bg-background/90 backdrop-blur-sm text-foreground shadow-md rounded-lg">
+          <Button
+            variant="ghost"
+            className="mb-4 bg-background/80 hover:bg-background/90 backdrop-blur-sm text-foreground shadow-md rounded-lg"
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Catalog
           </Button>
         </Link>
 
-        {/* Book Details - Three Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-          {/* Column 1: Book Cover (3 columns) */}
-          <div className="lg:col-span-3">
-            <div className="relative group cursor-pointer" onClick={() => setIsImageZoomed(true)}>
+        {/* Book Details - Mobile-Friendly Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mb-12">
+          {/* Column 1: Book Cover */}
+          <div className="lg:col-span-3 flex flex-col items-center lg:items-start">
+            <div
+              className="relative group cursor-pointer w-full max-w-sm lg:max-w-none"
+              onClick={() => setIsImageZoomed(true)}
+            >
               <div className="absolute -inset-4 bg-accent/20 rounded-2xl blur-xl group-hover:bg-accent/30 transition-all duration-500" />
               <img
                 src={book.img_url || '/placeholder.svg'}
                 alt={book.name}
-                className="relative w-full object-cover rounded-xl shadow-medium transform group-hover:scale-105 transition-transform duration-500"
+                className="relative w-full object-cover rounded-xl shadow-medium transition-opacity duration-300"
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity rounded-xl flex items-center justify-center">
-                <ZoomIn className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={40} />
+                <ZoomIn
+                  className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  size={40}
+                />
               </div>
-              <p className="text-center text-base text-muted-foreground mt-4">by {book.author || 'Unknown Author'}</p>
+              <p className="text-center text-base text-muted-foreground mt-4">
+                by {book.author || 'Unknown Author'}
+              </p>
             </div>
-            
-            {/* Social Sharing Buttons */}
-            <div className="mt-6 space-y-3">
+
+            {/* Social Sharing Buttons - Mobile Optimized */}
+            <div className="mt-6 space-y-3 w-full max-w-sm lg:max-w-none">
               <button
                 onClick={toggleFavorite}
                 className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
                   isFavorited
-                    ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white'
-                    : 'border-2 border-gray-300 text-gray-700 hover:border-pink-500'
+                    ? 'bg-accent text-accent-foreground'
+                    : 'border-2 border-border text-foreground hover:border-accent hover:bg-accent/10'
                 }`}
               >
-                <Heart
-                  size={20}
-                  className={isFavorited ? 'fill-current' : ''}
-                />
+                <Heart size={20} className={isFavorited ? 'fill-current' : ''} />
                 {isFavorited ? 'In Wishlist' : 'Add to Wishlist'}
               </button>
 
               <div className="flex gap-2">
                 <button
                   onClick={() => handleShare('facebook')}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-info text-white rounded-lg hover:opacity-90 transition-all"
+                  className="flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-[#1877F2] text-white rounded-lg hover:opacity-90 transition-all"
                 >
-                  <Facebook size={18} />
-                  <span className="text-sm font-medium">Share</span>
+                  <Facebook size={18} className="text-white" />
+                  <span className="text-xs sm:text-sm font-medium">Share</span>
                 </button>
                 <button
                   onClick={() => handleShare('twitter')}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-all"
+                  className="flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-foreground text-background rounded-lg hover:opacity-90 transition-all"
                 >
                   <XIcon size={18} />
-                  <span className="text-sm font-medium">Post</span>
+                  <span className="text-xs sm:text-sm font-medium">Post</span>
                 </button>
                 <button
                   onClick={() => handleShare('instagram')}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gradient-warm text-accent-foreground rounded-lg hover:opacity-90 transition-all"
+                  className="flex-1 flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 bg-gradient-warm text-accent-foreground rounded-lg hover:opacity-90 transition-all"
                 >
                   <Instagram size={18} />
-                  <span className="text-sm font-medium">Post</span>
+                  <span className="text-xs sm:text-sm font-medium">Post</span>
                 </button>
               </div>
             </div>
@@ -325,18 +384,25 @@ const BookDetail = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Column 2: Title, Description, and Details (6 columns) */}
+          {/* Column 2: Title, Description, and Details */}
           <div className="lg:col-span-6 space-y-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">{book.name}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+                {book.name}
+              </h1>
             </div>
-            
+
             {/* Description */}
             <div className="p-4 bg-card/50 rounded-xl border border-border">
               {(() => {
-                const description = book.description || enrichedData?.description || 'No description available for this book.';
+                const description =
+                  book.description ||
+                  enrichedData?.description ||
+                  'No description available for this book.';
                 const isLongDescription = description.length > 200;
-                const truncatedDescription = isLongDescription ? description.slice(0, 200) + '...' : description;
+                const truncatedDescription = isLongDescription
+                  ? description.slice(0, 200) + '...'
+                  : description;
 
                 return (
                   <Collapsible open={isDescriptionOpen} onOpenChange={setIsDescriptionOpen}>
@@ -361,7 +427,11 @@ const BookDetail = () => {
                           className="mt-2 text-accent hover:text-accent/80 p-0 h-auto font-medium"
                         >
                           {isDescriptionOpen ? 'Read Less' : 'Read More'}
-                          <ChevronDown className={`ml-1 h-4 w-4 transition-transform duration-200 ${isDescriptionOpen ? 'rotate-180' : ''}`} />
+                          <ChevronDown
+                            className={`ml-1 h-4 w-4 transition-transform duration-200 ${
+                              isDescriptionOpen ? 'rotate-180' : ''
+                            }`}
+                          />
                         </Button>
                       </CollapsibleTrigger>
                     )}
@@ -371,7 +441,14 @@ const BookDetail = () => {
             </div>
 
             {/* Book Details */}
-            {(book.publisher || enrichedData?.publisher?.[0] || book.publish_year || enrichedData?.publish_year?.[0] || book.page_count || enrichedData?.number_of_pages || book.isbn || book.isbn_10) && (
+            {(book.publisher ||
+              enrichedData?.publisher?.[0] ||
+              book.publish_year ||
+              enrichedData?.publish_year?.[0] ||
+              book.page_count ||
+              enrichedData?.number_of_pages ||
+              book.isbn ||
+              book.isbn_10) && (
               <div className="p-4 bg-card/50 rounded-xl border border-border">
                 <h3 className="text-base font-semibold text-foreground mb-3 flex items-center gap-2">
                   <BookOpen className="h-4 w-4 text-accent" />
@@ -383,7 +460,9 @@ const BookDetail = () => {
                       <BookOpen className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground">Publisher</p>
-                        <p className="text-foreground font-medium">{book.publisher || enrichedData?.publisher?.[0]}</p>
+                        <p className="text-foreground font-medium">
+                          {book.publisher || enrichedData?.publisher?.[0]}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -392,7 +471,9 @@ const BookDetail = () => {
                       <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground">Published</p>
-                        <p className="text-foreground font-medium">{book.publish_year || enrichedData?.publish_year?.[0]}</p>
+                        <p className="text-foreground font-medium">
+                          {book.publish_year || enrichedData?.publish_year?.[0]}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -401,7 +482,9 @@ const BookDetail = () => {
                       <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground">Pages</p>
-                        <p className="text-foreground font-medium">{book.page_count || enrichedData?.number_of_pages}</p>
+                        <p className="text-foreground font-medium">
+                          {book.page_count || enrichedData?.number_of_pages}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -428,18 +511,25 @@ const BookDetail = () => {
             )}
           </div>
 
-          {/* Column 3: Price, Quantity, and Add to Cart (3 columns) */}
-          <div className="lg:col-span-3">
-            <div className="p-6 bg-card/50 rounded-xl space-y-6 sticky top-24 relative">
-              {/* Check if book is on sale - for demo, books with prices ending in specific patterns */}
+          {/* Column 3: Price, Quantity, and Add to Cart */}
+          <div className="lg:col-span-3 order-first lg:order-last">
+            <div className="p-4 sm:p-6 bg-card/50 rounded-xl space-y-4 sm:space-y-6 lg:sticky lg:top-24 relative">
+              {/* Demo sale badge */}
               {(() => {
                 const lastDigit = book.price_cents % 10;
                 const isOnSale = lastDigit === 0 || lastDigit === 5;
                 const salePercent = lastDigit === 0 ? 15 : lastDigit === 5 ? 20 : 0;
-                
+
                 return isOnSale ? (
                   <div className="absolute -top-3 -right-3 bg-gradient-warm text-accent-foreground px-4 py-2 rounded-full text-sm font-bold shadow-lg z-10 flex items-center gap-1">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
                       <line x1="7" y1="7" x2="7.01" y2="7"></line>
                     </svg>
@@ -447,7 +537,7 @@ const BookDetail = () => {
                   </div>
                 ) : null;
               })()}
-              
+
               {/* Stock Status */}
               <div className="text-center">
                 {book.stock < 5 && book.stock > 0 && (
@@ -491,7 +581,7 @@ const BookDetail = () => {
               {/* Total */}
               <div className="flex justify-between items-center pt-2">
                 <span className="text-lg font-bold text-foreground">Total</span>
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-2xl font-bold text-primary">
                   ${(((book.price_cents * quantity) / 100) * 1.08).toFixed(2)}
                 </span>
               </div>
@@ -499,7 +589,9 @@ const BookDetail = () => {
               {/* Quantity Selector */}
               {book.stock > 0 && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground block">Select Quantity</label>
+                  <label className="text-sm font-medium text-foreground block">
+                    Select Quantity
+                  </label>
                   <div className="flex items-center justify-between gap-2">
                     <Button
                       variant="outline"
@@ -565,18 +657,22 @@ const BookDetail = () => {
                   ))}
                 </div>
                 <span className="text-lg font-semibold text-foreground">4.67</span>
-                <span className="text-sm text-muted-foreground">({mockReviews.length} reviews)</span>
+                <span className="text-sm text-muted-foreground">
+                  ({mockReviews.length} reviews)
+                </span>
               </div>
             </div>
 
             {/* Rating Distribution */}
             <div className="mb-8 space-y-2">
               {[5, 4, 3, 2, 1].map((rating) => {
-                const count = mockReviews.filter(r => r.rating === rating).length;
+                const count = mockReviews.filter((r) => r.rating === rating).length;
                 const percentage = (count / mockReviews.length) * 100;
                 return (
                   <div key={rating} className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-foreground w-12">{rating} star</span>
+                    <span className="text-sm font-medium text-foreground w-12">
+                      {rating} star
+                    </span>
                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                       <div
                         className="bg-yellow-400 h-2 rounded-full transition-all"
@@ -592,7 +688,10 @@ const BookDetail = () => {
             {/* Individual Reviews */}
             <div className="space-y-6">
               {mockReviews.map((review) => (
-                <div key={review.id} className="border-b border-border pb-6 last:border-b-0 last:pb-0">
+                <div
+                  key={review.id}
+                  className="border-b border-border pb-6 last:border-b-0 last:pb-0"
+                >
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <p className="font-semibold text-foreground">{review.name}</p>
@@ -602,12 +701,20 @@ const BookDetail = () => {
                             <Star
                               key={star}
                               size={16}
-                              className={star <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+                              className={
+                                star <= review.rating
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-gray-300'
+                              }
                             />
                           ))}
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(review.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                          {new Date(review.date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
                         </span>
                       </div>
                     </div>
@@ -629,16 +736,22 @@ const BookDetail = () => {
                   <div className="group bg-card/50 border border-border rounded-lg p-4 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     {item.img_url && (
                       <div className="overflow-hidden rounded-md mb-3">
-                        <img 
-                          src={item.img_url} 
-                          alt={item.name} 
-                          className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-300" 
+                        <img
+                          src={item.img_url}
+                          alt={item.name}
+                          className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
                     )}
-                    <h3 className="font-bold text-foreground truncate group-hover:text-accent transition-colors">{item.name}</h3>
-                    <p className="text-sm text-muted-foreground truncate mt-1">{item.author || 'Unknown'}</p>
-                    <p className="font-bold text-gray-900 mt-2">${(item.price_cents / 100).toFixed(2)}</p>
+                    <h3 className="font-bold text-foreground truncate group-hover:text-accent transition-colors">
+                      {item.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground truncate mt-1">
+                      {item.author || 'Unknown'}
+                    </p>
+                    <p className="font-bold text-gray-900 mt-2">
+                      ${(item.price_cents / 100).toFixed(2)}
+                    </p>
                   </div>
                 </Link>
               ))}

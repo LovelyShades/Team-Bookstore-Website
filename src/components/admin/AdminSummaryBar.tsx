@@ -56,7 +56,7 @@ export default function AdminSummaryBar() {
       <Card className={cardStyle}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-600">Total Orders</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground">Total Orders</h3>
             <p className="text-2xl font-bold text-primary">
               <CountUp end={stats.totalOrders} duration={0.8} />
             </p>
@@ -68,36 +68,36 @@ export default function AdminSummaryBar() {
       <Card className={cardStyle}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-600">Total Sales</h3>
-            <p className="text-2xl font-bold text-green-600">
+            <h3 className="text-sm font-semibold text-muted-foreground">Total Sales</h3>
+            <p className="text-2xl font-bold text-accent">
               $<CountUp end={stats.totalSales / 100} duration={0.8} decimals={2} />
             </p>
           </div>
-          <DollarSign className="h-6 w-6 text-green-600" />
+          <DollarSign className="h-6 w-6 text-accent" />
         </div>
       </Card>
 
       <Card className={cardStyle}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-600">Orders Today</h3>
-            <p className="text-2xl font-bold text-blue-600">
+            <h3 className="text-sm font-semibold text-muted-foreground">Orders Today</h3>
+            <p className="text-2xl font-bold text-accent">
               <CountUp end={stats.ordersToday} duration={0.8} />
             </p>
           </div>
-          <CalendarDays className="h-6 w-6 text-blue-600" />
+          <CalendarDays className="h-6 w-6 text-accent" />
         </div>
       </Card>
 
       <Card className={cardStyle}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-600">Active Discounts</h3>
-            <p className="text-2xl font-bold text-purple-600">
+            <h3 className="text-sm font-semibold text-muted-foreground">Active Discounts</h3>
+            <p className="text-2xl font-bold text-accent">
               <CountUp end={stats.activeDiscounts} duration={0.8} />
             </p>
           </div>
-          <Percent className="h-6 w-6 text-purple-600" />
+          <Percent className="h-6 w-6 text-accent" />
         </div>
       </Card>
     </div>

@@ -211,17 +211,17 @@ export default function AdminFulfillments() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'status-warning';
       case 'processing':
-        return 'bg-blue-100 text-blue-800';
+        return 'status-info';
       case 'shipped':
-        return 'bg-purple-100 text-purple-800';
+        return 'status-info';
       case 'delivered':
-        return 'bg-green-100 text-green-800';
+        return 'status-success';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'status-error';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -403,7 +403,7 @@ export default function AdminFulfillments() {
       {/* Processing Orders Section */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 border-b pb-2">
-          <Package className="h-5 w-5 text-blue-500" />
+          <Package className="h-5 w-5 text-info" />
           <h3 className="text-lg font-semibold">Processing Orders ({processingFulfillments.length})</h3>
         </div>
         {loadingProcessing ? (
@@ -418,7 +418,7 @@ export default function AdminFulfillments() {
           <Card>
             <CardContent className="py-8">
               <div className="text-center text-muted-foreground">
-                <Package className="h-12 w-12 mx-auto mb-4 text-blue-300" />
+                <Package className="h-12 w-12 mx-auto mb-4 text-info/50" />
                 <p>No orders being processed</p>
               </div>
             </CardContent>

@@ -370,7 +370,7 @@ export default function ShippingAddressManager() {
                       {address.label || 'Address'}
                     </CardTitle>
                     {address.is_default && (
-                      <Badge variant="default" className="bg-green-100 text-green-800">
+                      <Badge variant="default" className="status-success">
                         <Star className="h-3 w-3 mr-1" />
                         Default
                       </Badge>

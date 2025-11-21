@@ -5,7 +5,7 @@ import { Item } from "@/types";
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tag, TrendingDown } from "lucide-react";
+import { Tag, TrendingDown, Grid3x3, List } from "lucide-react";
 import { BookCard } from '@/components/BookCard';
 
 const Discounts = () => {
@@ -14,6 +14,7 @@ const Discounts = () => {
     sort: "discount",
     available: "1", // 0 = all, 1 = in stock, 2 = out of stock
   });
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const { data: items = [], isLoading, error } = useQuery({
     queryKey: ["discounts", filters],
@@ -138,7 +139,7 @@ const Discounts = () => {
           </form>
         </Card>
 
-        {/* Results count */}
+        {/* Results count and view toggle */}
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             {items.length === 0 ? (
@@ -150,13 +151,33 @@ const Discounts = () => {
               </p>
             )}
           </div>
-          <Link to="/catalog">
-            <Button variant="outline">View All Books</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <div className="flex border border-border rounded-lg">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className={viewMode === 'grid' ? 'bg-accent text-accent-foreground' : ''}
+              >
+                <Grid3x3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className={viewMode === 'list' ? 'bg-accent text-accent-foreground' : ''}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+            <Link to="/catalog">
+              <Button variant="outline" size="sm">View All Books</Button>
+            </Link>
+          </div>
         </div>
 
-        {/* Items grid */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Items grid or list */}
+        <section className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6' : 'flex flex-col gap-4'}>
           {isLoading
             ? Array.from({ length: 8 }).map((_, i) => (
                 <div
@@ -171,6 +192,47 @@ const Discounts = () => {
                 const originalPrice = item.sale_price_cents
                   ? `$${(item.price_cents / 100).toFixed(2)}`
                   : undefined;
+
+                if (viewMode === 'list') {
+                  return (
+                    <Link key={item.id} to={`/book/${item.id}`}>
+                      <Card className="hover:shadow-lg transition-shadow">
+                        <div className="flex gap-4 p-4">
+                          <div className="relative flex-shrink-0">
+                            {item.on_sale && item.sale_percentage && (
+                              <div className="absolute top-0 left-0 z-10 bg-accent text-accent-foreground px-2 py-1 rounded-md text-xs font-bold shadow-lg flex items-center gap-1">
+                                <TrendingDown size={12} />
+                                {Math.round(item.sale_percentage)}% OFF
+                              </div>
+                            )}
+                            <img
+                              src={item.img_url || '/placeholder.svg'}
+                              alt={item.name}
+                              className="w-24 h-32 object-cover rounded"
+                            />
+                          </div>
+                          <div className="flex-1 flex flex-col justify-between">
+                            <div>
+                              <h3 className="font-semibold text-lg text-foreground">{item.name}</h3>
+                              <p className="text-sm text-muted-foreground">{item.author || 'Unknown Author'}</p>
+                            </div>
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl font-bold text-accent">{displayPrice}</span>
+                                {originalPrice && (
+                                  <span className="text-sm text-muted-foreground line-through">{originalPrice}</span>
+                                )}
+                              </div>
+                              <span className={`text-sm ${item.stock > 0 ? 'text-success' : 'text-muted-foreground'}`}>
+                                {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </Link>
+                  );
+                }
 
                 return (
                   <Link key={item.id} to={`/book/${item.id}`}>

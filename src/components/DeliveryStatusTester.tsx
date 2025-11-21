@@ -145,13 +145,13 @@ const DeliveryStatusTester = () => {
 
   const getStatusColor = (status: string) => {
     const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      processing: 'bg-orange-100 text-orange-800',
-      shipped: 'bg-purple-100 text-purple-800',
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
+      pending: 'status-warning',
+      processing: 'status-info',
+      shipped: 'status-info',
+      delivered: 'status-success',
+      cancelled: 'status-error',
     };
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    return colors[status as keyof typeof colors] || 'bg-muted text-muted-foreground';
   };
 
   return (

@@ -113,13 +113,13 @@ export default function AdminOrders() {
   // Helper function to get status display
   const getStatusDisplay = (status: string) => {
     const configs = {
-      pending: { label: 'Pending Fulfillment', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-      processing: { label: 'Processing', color: 'bg-orange-100 text-orange-800', icon: Package },
-      shipped: { label: 'Shipped', color: 'bg-purple-100 text-purple-800', icon: Truck },
-      delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800', icon: XCircle },
-      mixed: { label: 'Mixed Status', color: 'bg-blue-100 text-blue-800', icon: Package },
-      none: { label: 'No Fulfillments', color: 'bg-gray-100 text-gray-800', icon: Clock },
+      pending: { label: 'Pending Fulfillment', color: 'status-warning', icon: Clock },
+      processing: { label: 'Processing', color: 'status-info', icon: Package },
+      shipped: { label: 'Shipped', color: 'status-info', icon: Truck },
+      delivered: { label: 'Delivered', color: 'status-success', icon: CheckCircle },
+      cancelled: { label: 'Cancelled', color: 'status-error', icon: XCircle },
+      mixed: { label: 'Mixed Status', color: 'status-info', icon: Package },
+      none: { label: 'No Fulfillments', color: 'bg-muted text-muted-foreground', icon: Clock },
     };
     
     return configs[status as keyof typeof configs] || configs.none;
@@ -230,27 +230,27 @@ export default function AdminOrders() {
       </div>
 
       <Tabs defaultValue="ongoing" className="space-y-6">
-        <TabsList className="bg-card border border-border p-1">
-          <TabsTrigger 
+        <TabsList className="bg-card border border-border p-1 grid grid-cols-3 w-full">
+          <TabsTrigger
             value="ongoing"
-            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex items-center justify-center gap-2"
           >
-            <Package className="h-4 w-4 mr-2" />
-            Ongoing Orders ({ongoingOrders.length})
+            <Package className="h-5 w-5 md:h-4 md:w-4" />
+            <span className="hidden lg:inline">Ongoing ({ongoingOrders.length})</span>
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="completed"
-            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex items-center justify-center gap-2"
           >
-            <CheckCircle className="h-4 w-4 mr-2" />
-            Completed Orders ({completedOrders.length})
+            <CheckCircle className="h-5 w-5 md:h-4 md:w-4" />
+            <span className="hidden lg:inline">Completed ({completedOrders.length})</span>
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="cancelled"
-            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
+            className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground flex items-center justify-center gap-2"
           >
-            <XCircle className="h-4 w-4 mr-2" />
-            Cancelled Orders ({cancelledOrders.length})
+            <XCircle className="h-5 w-5 md:h-4 md:w-4" />
+            <span className="hidden lg:inline">Cancelled ({cancelledOrders.length})</span>
           </TabsTrigger>
         </TabsList>
 
@@ -273,7 +273,7 @@ export default function AdminOrders() {
                       <div>
                         <CardTitle className="text-lg flex items-center gap-2">
                           Order #{order.id.slice(0, 8)}
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                          <Badge variant="outline" className="status-info">
                             <ShoppingCart className="h-3 w-3 mr-1" />
                             {order.order_items.reduce((sum, item) => sum + item.qty, 0)} items
                           </Badge>
@@ -410,7 +410,7 @@ export default function AdminOrders() {
                       <div>
                         <CardTitle className="text-lg flex items-center gap-2">
                           Order #{order.id.slice(0, 8)}
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                          <Badge variant="outline" className="status-info">
                             <ShoppingCart className="h-3 w-3 mr-1" />
                             {order.order_items.reduce((sum, item) => sum + item.qty, 0)} items
                           </Badge>
@@ -470,7 +470,7 @@ export default function AdminOrders() {
               <Card>
                 <CardContent className="py-12">
                   <div className="text-center">
-                    <CheckCircle className="h-12 w-12 mx-auto text-green-500 mb-4" />
+                    <CheckCircle className="h-12 w-12 mx-auto text-success mb-4" />
                     <h3 className="text-lg font-semibold text-foreground mb-2">No Completed Orders</h3>
                     <p className="text-muted-foreground">Delivered orders will appear here.</p>
                   </div>
@@ -499,7 +499,7 @@ export default function AdminOrders() {
                       <div>
                         <CardTitle className="text-lg flex items-center gap-2">
                           Order #{order.id.slice(0, 8)}
-                          <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                          <Badge variant="outline" className="status-info">
                             <ShoppingCart className="h-3 w-3 mr-1" />
                             {order.order_items.reduce((sum, item) => sum + item.qty, 0)} items
                           </Badge>
