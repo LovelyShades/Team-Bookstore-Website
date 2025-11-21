@@ -335,12 +335,26 @@ const Checkout = () => {
             </Button>
           </div>
           {appliedDiscount > 0 ? (
-            <p className="text-sm text-accent font-semibold mt-2">
-              ✓ {appliedDiscount}% discount applied!
-            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <p className="text-sm text-accent font-semibold">
+                ✓ {appliedDiscount}% discount applied! Check Order Summary above.
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDiscountCode('');
+                  setAppliedDiscount(0);
+                  toast.info('Discount removed');
+                }}
+                className="h-6 text-xs"
+              >
+                Remove
+              </Button>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground mt-2">
-              Enter a valid discount code and click Apply
+              Click Apply to see the discount in Order Summary above
             </p>
           )}
         </div>
