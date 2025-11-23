@@ -662,7 +662,7 @@ export default function AdminBooks() {
                           </div>
                         </div>
                       )}
-                    </div>
+                    </div>                   
 
                     <div className="flex gap-2">
                       <Button
@@ -792,6 +792,114 @@ export default function AdminBooks() {
                         }}
                       />
                     </div>
+
+{/* 🔥 NEW — Sale Section for Adding a Book */}
+<div className="border-t pt-4">
+  <div className="flex items-center justify-between mb-4">
+    <div>
+      <Label htmlFor="on_sale_new" className="text-base font-semibold">Put on Sale</Label>
+      <p className="text-xs text-muted-foreground">Enable special pricing</p>
+    </div>
+    <Switch
+      id="on_sale_new"
+      checked={formData.on_sale}
+      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, on_sale: checked }))}
+    />
+  </div>
+
+  {formData.on_sale && (
+    <div className="space-y-4 pl-4 border-l-2 border-accent">
+      <div className="space-y-4">
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant={formData.sale_input_mode === 'price' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFormData(prev => ({ ...prev, sale_input_mode: 'price' }))}
+            className="flex-1"
+          >
+            Set Price
+          </Button>
+          <Button
+            type="button"
+            variant={formData.sale_input_mode === 'percentage' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setFormData(prev => ({ ...prev, sale_input_mode: 'percentage' }))}
+            className="flex-1"
+          >
+            Set % Off
+          </Button>
+        </div>
+
+        {formData.sale_input_mode === 'price' ? (
+          <div>
+            <Label htmlFor="sale_price_new">Sale Price</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+              <Input
+                id="sale_price_new"
+                type="text"
+                value={formData.sale_price_cents ? ((typeof formData.sale_price_cents === 'string' ? parseInt(formData.sale_price_cents) : formData.sale_price_cents) / 100).toFixed(2) : '0.00'}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/[^0-9]/g, '');
+                  const cents = digits === '' ? '' : parseInt(digits).toString();
+                  setFormData(prev => ({ ...prev, sale_price_cents: cents }));
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    const currentCents = typeof formData.sale_price_cents === 'string' ? parseInt(formData.sale_price_cents) || 0 : formData.sale_price_cents;
+                    const newCents = Math.floor(currentCents / 10);
+                    setFormData(prev => ({ ...prev, sale_price_cents: newCents > 0 ? newCents.toString() : '' }));
+                  }
+                }}
+                className="pl-7"
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+        ) : (
+          <div>
+            <Label htmlFor="sale_percentage_new">Percentage Off</Label>
+            <div className="relative">
+              <Input
+                id="sale_percentage_new"
+                type="number"
+                min="1"
+                max="99"
+                value={formData.sale_percentage}
+                onChange={(e) => {
+                  const percentage = parseInt(e.target.value) || 0;
+                  if (percentage >= 0 && percentage <= 100) {
+                    const salePriceCents = Math.round(formData.price_cents * (1 - percentage / 100));
+                    setFormData(prev => ({
+                      ...prev,
+                      sale_percentage: e.target.value,
+                      sale_price_cents: salePriceCents.toString()
+                    }));
+                  }
+                }}
+                className="pr-7"
+                placeholder="0"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">%</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <Label htmlFor="sale_ends_at_new">Sale Ends (optional)</Label>
+        <Input
+          id="sale_ends_at_new"
+          type="datetime-local"
+          value={formData.sale_ends_at}
+          onChange={(e) => setFormData(prev => ({ ...prev, sale_ends_at: e.target.value }))}
+        />
+      </div>
+    </div>
+  )}
+</div>
 
                     <div className="flex gap-2">
                       <Button
