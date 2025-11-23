@@ -20,6 +20,7 @@ import { Item } from "@/types";
 export const HeroCarousel = () => {
   const [api, setApi] = useState<any>();
   const [current, setCurrent] = useState(0);
+  const [isUserInteracting, setIsUserInteracting] = useState(false);
 
   const { data: featuredBooks = [] } = useQuery({
     queryKey: ["featured-items"],
@@ -37,22 +38,46 @@ export const HeroCarousel = () => {
   });
 
   /* =====================================================
-   *  Auto-scroll (slow) + Sync Slide State
+   *  Auto-scroll (slow) + Sync Slide State + Pause on Interaction
    * ===================================================== */
   useEffect(() => {
     if (!api) return;
 
     // Keep UI synced to carousel
     setCurrent(api.selectedScrollSnap());
-    api.on("select", () => setCurrent(api.selectedScrollSnap()));
+    const onSelect = () => setCurrent(api.selectedScrollSnap());
+    api.on("select", onSelect);
 
-    // MUCH slower auto-scroll (8 seconds)
+    // Pause auto-scroll when user interacts
+    const onPointerDown = () => {
+      setIsUserInteracting(true);
+    };
+
+    const onPointerUp = () => {
+      // Resume auto-scroll after 3 seconds of no interaction
+      setTimeout(() => setIsUserInteracting(false), 3000);
+    };
+
+    api.on("pointerDown", onPointerDown);
+    api.on("pointerUp", onPointerUp);
+
+    return () => {
+      api.off("select", onSelect);
+      api.off("pointerDown", onPointerDown);
+      api.off("pointerUp", onPointerUp);
+    };
+  }, [api]);
+
+  // Separate effect for auto-scroll that respects user interaction
+  useEffect(() => {
+    if (!api || isUserInteracting) return;
+
     const interval = setInterval(() => {
       api.scrollNext();
     }, 8000);
 
     return () => clearInterval(interval);
-  }, [api]);
+  }, [api, isUserInteracting]);
 
   if (!featuredBooks.length) return null;
 
