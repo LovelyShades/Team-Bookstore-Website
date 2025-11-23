@@ -20,6 +20,8 @@ const Checkout = () => {
   const queryClient = useQueryClient();
   const [discountCode, setDiscountCode] = useState('');
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; pct_off: number } | null>(null);
+  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
   const [newAddress, setNewAddress] = useState({
     label: '',
     line1: '',
@@ -118,7 +120,7 @@ const Checkout = () => {
 
       const { data, error } = await supabase.rpc('fn_checkout' as any, {
         p_cart_id: cartData.cartId,
-        p_discount_code: discountCode?.trim() || null,
+        p_discount_code: appliedDiscount?.code || null,
         p_shipping_address_id: addressId,
       });
 
@@ -199,8 +201,55 @@ const Checkout = () => {
     const discountedPrice = isOnSale ? (item.items.sale_price_cents || item.items.price_cents) : item.items.price_cents;
     return sum + discountedPrice * item.qty;
   }, 0);
-  const tax = Math.round(subtotal * 0.0825);
-  const total = subtotal + tax;
+
+  const discountAmount = appliedDiscount ? Math.round((subtotal * appliedDiscount.pct_off) / 100) : 0;
+  const afterDiscount = subtotal - discountAmount;
+  const tax = Math.round(afterDiscount * 0.0825);
+  const total = afterDiscount + tax;
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      toast.error('Please enter a discount code');
+      return;
+    }
+
+    setIsValidatingDiscount(true);
+    try {
+      const { data, error } = await supabase.rpc('fn_validate_discount' as any, {
+        p_discount_code: discountCode.trim()
+      });
+
+      if (error) {
+        console.error('Discount validation error:', error);
+        toast.error('Failed to validate discount code');
+        setAppliedDiscount(null);
+        return;
+      }
+
+      const result = data as { valid: boolean; error?: string; code?: string; pct_off?: number };
+
+      if (!result.valid) {
+        const errorMessages = {
+          INVALID_CODE: 'Invalid discount code',
+          INACTIVE: 'This discount code is no longer active',
+          EXPIRED: 'This discount code has expired',
+          USAGE_LIMIT: 'This discount code has reached its usage limit'
+        };
+        toast.error(errorMessages[result.error as keyof typeof errorMessages] || 'Invalid discount code');
+        setAppliedDiscount(null);
+        return;
+      }
+
+      setAppliedDiscount({ code: result.code!, pct_off: result.pct_off || 0 });
+      toast.success(`Discount applied: ${result.pct_off}% off!`);
+    } catch (error) {
+      console.error('Discount validation error:', error);
+      toast.error('Failed to validate discount code');
+      setAppliedDiscount(null);
+    } finally {
+      setIsValidatingDiscount(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background pt-16">
@@ -264,10 +313,10 @@ const Checkout = () => {
               <span>Subtotal</span>
               <span>${(subtotal / 100).toFixed(2)}</span>
             </div>
-            {discountCode.trim() && (
-              <div className="flex justify-between text-muted-foreground text-sm">
-                <span>Discount Code: {discountCode}</span>
-                <span>Applied at checkout</span>
+            {appliedDiscount && (
+              <div className="flex justify-between text-accent font-medium">
+                <span>Discount ({appliedDiscount.code} - {appliedDiscount.pct_off}%)</span>
+                <span>-${(discountAmount / 100).toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between text-foreground">
@@ -279,14 +328,9 @@ const Checkout = () => {
               <span>${(tax / 100).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-foreground text-xl font-bold pt-2 border-t border-border">
-              <span>Estimated Total</span>
+              <span>Total</span>
               <span className="text-accent">${(total / 100).toFixed(2)}</span>
             </div>
-            {discountCode.trim() && (
-              <p className="text-xs text-muted-foreground text-right">
-                Final total will reflect discount
-              </p>
-            )}
           </div>
         </div>
 
@@ -301,17 +345,43 @@ const Checkout = () => {
               type="text"
               placeholder="Enter discount code"
               value={discountCode}
-              onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+              onChange={(e) => {
+                setDiscountCode(e.target.value.toUpperCase());
+                if (appliedDiscount) setAppliedDiscount(null);
+              }}
               className="flex-1"
+              disabled={isValidatingDiscount}
             />
+            <Button
+              variant="outline"
+              onClick={handleApplyDiscount}
+              disabled={isValidatingDiscount || !discountCode.trim()}
+              className="rounded-lg min-w-[100px]"
+            >
+              {isValidatingDiscount ? 'Checking...' : 'Apply'}
+            </Button>
           </div>
-          {discountCode.trim() ? (
-            <p className="text-sm text-muted-foreground mt-2">
-              Discount code will be applied at checkout
-            </p>
+          {appliedDiscount ? (
+            <div className="mt-2 flex items-center justify-between">
+              <p className="text-sm text-accent font-semibold">
+                ✓ {appliedDiscount.pct_off}% discount applied!
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDiscountCode('');
+                  setAppliedDiscount(null);
+                  toast.info('Discount removed');
+                }}
+                className="h-6 text-xs"
+              >
+                Remove
+              </Button>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground mt-2">
-              Enter your discount code above
+              Enter code and click Apply to see discount
             </p>
           )}
         </div>
