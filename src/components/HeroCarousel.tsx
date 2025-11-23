@@ -230,7 +230,7 @@ export const HeroCarousel = () => {
         </Carousel>
       </div>
 
-      {/* ======================== DOTS (Mobile only) ======================== */}
+      {/* ======================== DOTS (Mobile only test) ======================== */}
 <div className="absolute bottom-12 w-full flex justify-center gap-2 md:hidden">
   {featuredBooks.map((_, index) => (
     <button
