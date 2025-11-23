@@ -82,7 +82,7 @@ export const HeroCarousel = () => {
   if (!featuredBooks.length) return null;
 
   return (
-    <div className="relative w-full overflow-hidden min-h-[500px] md:min-h-[550px] lg:min-h-[600px]">
+    <div className="relative w-full overflow-hidden min-h-[420px] md:min-h-[550px] lg:min-h-[600px]">
 
       {/* ===== BACKGROUND IMAGE ===== */}
       <div className="absolute inset-0">
@@ -99,7 +99,7 @@ export const HeroCarousel = () => {
       </div>
 
       {/* ===== MAIN CONTENT ===== */}
-      <div className="relative w-full mx-auto px-6 md:px-10 pt-20 pb-10 flex items-center justify-center">
+      <div className="relative w-full mx-auto px-6 md:px-10 pt-16 pb-8 flex items-center justify-center">
         <Carousel
           setApi={setApi}
           opts={{ align: "center", loop: true }}
@@ -134,12 +134,12 @@ export const HeroCarousel = () => {
                   </div>
 
                   {/* ===== LEFT PANEL ===== */}
-                  <div className="w-full md:w-[47%]">
+                  <div className="w-full md:w-[47%] mb-16 md:mb-0">
                     <div
                       className="
                         bg-white/80 backdrop-blur-xl
                         rounded-xl border border-white/40 p-6 sm:p-8
-                        h-auto md:h-[380px] lg:h-[420px]
+                        min-h-[320px] md:h-[380px] lg:h-[420px]
                         grid grid-rows-[auto,1fr,auto] gap-3
                       "
                     >
@@ -148,7 +148,7 @@ export const HeroCarousel = () => {
                           Featured Collection
                         </span>
 
-                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-2 text-foreground leading-snug line-clamp-2 pb-2">
+                        <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-2 text-foreground leading-snug line-clamp-1 md:line-clamp-2 pb-2">
                           {book.name}
                         </h1>
 
@@ -231,7 +231,7 @@ export const HeroCarousel = () => {
       </div>
 
       {/* ======================== DOTS (Mobile only) ======================== */}
-<div className="absolute bottom-6 w-full flex justify-center gap-2 md:hidden">
+<div className="absolute bottom-12 w-full flex justify-center gap-2 md:hidden">
   {featuredBooks.map((_, index) => (
     <button
       key={index}
