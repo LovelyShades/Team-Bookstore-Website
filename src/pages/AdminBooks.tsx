@@ -218,6 +218,14 @@ export default function AdminBooks() {
   const handleAddBook = () => {
     if (!selectedBook) return;
 
+    const salePriceCents = formData.on_sale
+      ? (typeof formData.sale_price_cents === 'string' && formData.sale_price_cents ? parseInt(formData.sale_price_cents) : 0)
+      : null;
+
+    const salePercentage = formData.on_sale && salePriceCents
+      ? Math.round(((formData.price_cents - salePriceCents) / formData.price_cents) * 100)
+      : null;
+
     const bookData = {
       ...bookService.formatBookForDatabase(selectedBook),
       price_cents: formData.price_cents,
@@ -225,6 +233,10 @@ export default function AdminBooks() {
       active: formData.active,
       featured: formData.featured,
       description: formData.description || null,
+      on_sale: formData.on_sale,
+      sale_price_cents: salePriceCents,
+      sale_percentage: salePercentage,
+      sale_ends_at: formData.on_sale && formData.sale_ends_at ? formData.sale_ends_at : null,
     };
 
     addBookMutation.mutate(bookData);
