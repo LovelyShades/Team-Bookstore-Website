@@ -25,15 +25,7 @@ import {
 import { toast } from 'sonner';
 import { Item } from '@/types';
 import { bookService } from '@/services/bookService';
-
-// TYPE FOR WISHLIST ITEMS
-interface WishlistItem {
-  id: string;
-  name: string;
-  price_cents: number;
-  img_url: string;
-  author?: string;
-}
+import { wishlistService } from '@/services/wishlistService';
 
 // Custom X (formerly Twitter) icon
 const XIcon = ({ size = 24, className = '' }: { size?: number; className?: string }) => (
@@ -110,30 +102,27 @@ const BookDetail = () => {
     enabled: !!bookId,
   });
 
-  // ===== TRACK RECENT + USER-SPECIFIC WISHLIST =====
+  // ===== TRACK RECENT + CHECK WISHLIST =====
   useEffect(() => {
     if (!book) return;
 
     // Recently viewed
     const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
     const bookData = {
-  id: book.id,
-  name: book.name,
-  price_cents: book.price_cents,
-  img_url: book.img_url ?? "",
-  author: book.author ?? undefined,
-};
-
+      id: book.id,
+      name: book.name,
+      price_cents: book.price_cents,
+      img_url: book.img_url ?? "",
+      author: book.author ?? undefined,
+    };
 
     const filtered = recentlyViewed.filter((b: any) => b.id !== book.id);
     const updated = [bookData, ...filtered].slice(0, 6);
     localStorage.setItem('recentlyViewed', JSON.stringify(updated));
 
-    // Wishlist check per user
+    // Check if book is in wishlist
     if (user) {
-      const key = `wishlist_${user.id}`;
-      const wishlist: WishlistItem[] = JSON.parse(localStorage.getItem(key) || '[]');
-      setIsFavorited(wishlist.some((b) => b.id === book.id));
+      wishlistService.isInWishlist(user.id, book.id).then(setIsFavorited);
     } else {
       setIsFavorited(false);
     }
@@ -197,40 +186,44 @@ const BookDetail = () => {
     },
   });
 
-  // ===== WISHLIST TOGGLE (LOCAL STORAGE, USER SPECIFIC) =====
+  // ===== WISHLIST TOGGLE (DATABASE) =====
+  const toggleWishlistMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) {
+        navigate("/auth");
+        toast.success("Please log in to add to wishlist");
+        throw new Error('User not authenticated');
+      }
+
+      if (!book) throw new Error('Book not found');
+
+      if (isFavorited) {
+        await wishlistService.removeFromWishlist(user.id, book.id);
+        return { action: 'removed' };
+      } else {
+        await wishlistService.addToWishlist(user.id, book.id);
+        return { action: 'added' };
+      }
+    },
+    onSuccess: (data) => {
+      if (data.action === 'added') {
+        setIsFavorited(true);
+        toast.success("Added to wishlist");
+      } else {
+        setIsFavorited(false);
+        toast.success("Removed from wishlist");
+      }
+      queryClient.invalidateQueries({ queryKey: ['wishlist'] });
+    },
+    onError: (error: Error) => {
+      if (error.message !== 'User not authenticated') {
+        toast.error('Failed to update wishlist');
+      }
+    },
+  });
+
   const toggleFavorite = () => {
-    if (!book) return;
-
-    if (!user) {
-      toast.warning("Please log in to use your wishlist");
-      navigate("/auth");
-      return;
-    }
-
-    const key = `wishlist_${user.id}`;
-    const wishlist: WishlistItem[] = JSON.parse(localStorage.getItem(key) || "[]");
-
-    const exists = wishlist.some((i) => i.id === book.id);
-
-    if (exists) {
-      const updated = wishlist.filter((i) => i.id !== book.id);
-      localStorage.setItem(key, JSON.stringify(updated));
-      setIsFavorited(false);
-      toast.success("Removed from wishlist");
-    } else {
-      const newItem: WishlistItem = {
-  id: book.id,
-  name: book.name,
-  price_cents: book.price_cents,
-  img_url: book.img_url ?? "",       // 👈 FIX 1
-  author: book.author ?? undefined,  // 👈 FIX 2
-};
-
-
-      localStorage.setItem(key, JSON.stringify([newItem, ...wishlist]));
-      setIsFavorited(true);
-      toast.success("Added to wishlist");
-    }
+    toggleWishlistMutation.mutate();
   };
 
   // Mock reviews

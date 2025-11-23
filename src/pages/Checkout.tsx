@@ -20,8 +20,6 @@ const Checkout = () => {
   const queryClient = useQueryClient();
   const [discountCode, setDiscountCode] = useState('');
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
-  const [appliedDiscount, setAppliedDiscount] = useState(0);
-  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
   const [newAddress, setNewAddress] = useState({
     label: '',
     line1: '',
@@ -201,10 +199,8 @@ const Checkout = () => {
     const discountedPrice = isOnSale ? (item.items.sale_price_cents || item.items.price_cents) : item.items.price_cents;
     return sum + discountedPrice * item.qty;
   }, 0);
-  const discountAmount = Math.round((subtotal * appliedDiscount) / 100);
-  const afterDiscount = subtotal - discountAmount;
-  const tax = Math.round(afterDiscount * 0.0825);
-  const total = afterDiscount + tax;
+  const tax = Math.round(subtotal * 0.0825);
+  const total = subtotal + tax;
 
   return (
     <div className="min-h-screen bg-background pt-16">
@@ -268,10 +264,10 @@ const Checkout = () => {
               <span>Subtotal</span>
               <span>${(subtotal / 100).toFixed(2)}</span>
             </div>
-            {appliedDiscount > 0 && (
-              <div className="flex justify-between text-accent">
-                <span>Discount ({appliedDiscount}%)</span>
-                <span>-${(discountAmount / 100).toFixed(2)}</span>
+            {discountCode.trim() && (
+              <div className="flex justify-between text-muted-foreground text-sm">
+                <span>Discount Code: {discountCode}</span>
+                <span>Applied at checkout</span>
               </div>
             )}
             <div className="flex justify-between text-foreground">
@@ -283,9 +279,14 @@ const Checkout = () => {
               <span>${(tax / 100).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-foreground text-xl font-bold pt-2 border-t border-border">
-              <span>Total</span>
+              <span>Estimated Total</span>
               <span className="text-accent">${(total / 100).toFixed(2)}</span>
             </div>
+            {discountCode.trim() && (
+              <p className="text-xs text-muted-foreground text-right">
+                Final total will reflect discount
+              </p>
+            )}
           </div>
         </div>
 
@@ -303,83 +304,14 @@ const Checkout = () => {
               onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
               className="flex-1"
             />
-            <Button
-              variant="outline"
-              onClick={async () => {
-                if (!discountCode.trim()) {
-                  toast.error('Please enter a discount code');
-                  return;
-                }
-
-                setIsValidatingDiscount(true);
-                try {
-                  const { data, error } = await supabase
-                    .from('discounts')
-                    .select('pct_off, max_uses, used_count, expires_at, active')
-                    .eq('code', discountCode)
-                    .single();
-
-                  if (error || !data) {
-                    toast.error('Invalid discount code');
-                    setAppliedDiscount(0);
-                    return;
-                  }
-
-                  if (!data.active) {
-                    toast.error('This discount code is no longer active');
-                    setAppliedDiscount(0);
-                    return;
-                  }
-
-                  if (data.expires_at && new Date(data.expires_at) < new Date()) {
-                    toast.error('This discount code has expired');
-                    setAppliedDiscount(0);
-                    return;
-                  }
-
-                  if (data.max_uses && data.used_count >= data.max_uses) {
-                    toast.error('This discount code has reached its usage limit');
-                    setAppliedDiscount(0);
-                    return;
-                  }
-
-                  setAppliedDiscount(data.pct_off || 0);
-                  toast.success(`Discount applied: ${data.pct_off}% off!`);
-                } catch (error) {
-                  console.error('Discount validation error:', error);
-                  toast.error('Failed to validate discount code');
-                  setAppliedDiscount(0);
-                } finally {
-                  setIsValidatingDiscount(false);
-                }
-              }}
-              disabled={isValidatingDiscount}
-              className="rounded-lg"
-            >
-              {isValidatingDiscount ? 'Validating...' : 'Apply'}
-            </Button>
           </div>
-          {appliedDiscount > 0 ? (
-            <div className="mt-2 flex items-center gap-2">
-              <p className="text-sm text-accent font-semibold">
-                ✓ {appliedDiscount}% discount applied! Check Order Summary above.
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setDiscountCode('');
-                  setAppliedDiscount(0);
-                  toast.info('Discount removed');
-                }}
-                className="h-6 text-xs"
-              >
-                Remove
-              </Button>
-            </div>
+          {discountCode.trim() ? (
+            <p className="text-sm text-muted-foreground mt-2">
+              Discount code will be applied at checkout
+            </p>
           ) : (
             <p className="text-sm text-muted-foreground mt-2">
-              Click Apply to see the discount in Order Summary above
+              Enter your discount code above
             </p>
           )}
         </div>
