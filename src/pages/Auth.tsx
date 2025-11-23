@@ -12,6 +12,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState('');
 
   if (user) {
@@ -22,6 +23,12 @@ const Auth = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (isSignUp && password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
 
     if (isSignUp) {
       const { error } = await signUp(email, password, fullName);
@@ -117,6 +124,25 @@ const Auth = () => {
             required
           />
         </div>
+
+        {isSignUp && (
+          <div>
+            <label htmlFor="confirmPassword" className="block mb-1 text-foreground">Confirm Password</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full border border-input bg-background text-foreground rounded-lg p-2 focus:ring-2 focus:ring-ring"
+              required
+            />
+
+            {/* Live mismatch warning */}
+            {password !== confirmPassword && confirmPassword.length > 0 && (
+              <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
+            )}
+          </div>
+        )}
 
         <button
           type="submit"
