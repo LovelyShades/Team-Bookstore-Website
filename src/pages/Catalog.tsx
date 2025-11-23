@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Item } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +18,18 @@ const Catalog = () => {
     sort: "created_at",
     available: "0",
   });
+
+  // local search updates when user is typing
+  const [searchText, setSearchText] = useState(filters.q);
+
+  //waits 300 ms before applying the "updated search"
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, q: searchText }));
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
 
   const { data: items = [], isLoading, error } = useQuery({
     queryKey: ["catalog", filters],
@@ -115,6 +127,8 @@ const Catalog = () => {
               name="q"
               placeholder="Search by book name, author, or ISBN..."
               defaultValue={filters.q}
+              value={searchText}  //added input update to search instantly
+              onChange={(e) => setSearchText(e.target.value)}
               className="flex-1 min-w-[200px] px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring"
             />
 
