@@ -793,7 +793,7 @@ export default function AdminBooks() {
                       />
                     </div>
 
-{/* 🔥 NEW — Sale Section for Adding a Book */}
+{/* adds sale section for new books */}
 <div className="border-t pt-4">
   <div className="flex items-center justify-between mb-4">
     <div>
