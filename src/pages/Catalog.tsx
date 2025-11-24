@@ -195,6 +195,7 @@ const Catalog = () => {
                 min={0}
                 max={100}
                 step={1}
+                minStepsBetweenThumbs={0}
                 value={[filters.priceMin, filters.priceMax]}
                 onValueChange={(vals) =>
                   setFilters((prev) => ({
