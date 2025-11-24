@@ -94,9 +94,9 @@ const Cart = () => {
   // --- Unauthenticated view
   if (!user) {
     return (
-      <div className="min-h-screen bg-background p-6 flex items-center justify-center">
+      <main className="min-h-screen bg-background p-6 flex items-center justify-center">
         <Card className="max-w-md text-center bg-card backdrop-blur-sm border-border p-8">
-          <ShoppingBag className="h-20 w-20 mx-auto mb-6 text-muted" />
+          <ShoppingBag className="h-24 w-24 mx-auto mb-6 text-accent/70" />
           <h2 className="text-2xl font-bold text-foreground mb-2">
             Sign in to view your cart
           </h2>
@@ -109,7 +109,7 @@ const Cart = () => {
             </Button>
           </Link>
         </Card>
-      </div>
+      </main>
     );
   }
 
@@ -139,7 +139,7 @@ const Cart = () => {
           />
           <Card className="text-center bg-card backdrop-blur-sm border-border py-12">
             <svg
-              className="w-24 h-24 mx-auto text-muted mb-4"
+              className="w-24 h-24 mx-auto text-accent/70 mb-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

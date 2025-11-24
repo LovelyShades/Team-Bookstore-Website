@@ -53,7 +53,7 @@ const Wishlist = () => {
     return (
       <main className="min-h-screen bg-background p-6 flex items-center justify-center">
         <Card className="max-w-md text-center bg-card backdrop-blur-sm border-border p-8">
-          <Heart className="h-20 w-20 mx-auto mb-6 text-muted" />
+          <Heart className="h-24 w-24 mx-auto mb-6 text-accent/70" />
           <h2 className="text-2xl font-bold text-foreground mb-2">
             Sign in to view your wishlist
           </h2>
@@ -103,16 +103,16 @@ const Wishlist = () => {
 
         {/* Empty State */}
         {wishlistData.length === 0 ? (
-          <Card className="bg-card p-12 text-center border-border">
-            <Heart className="h-16 w-16 text-muted mx-auto mb-4" />
-            <h2 className="text-2xl font-semibold text-foreground mb-2">
+          <Card className="text-center bg-card backdrop-blur-sm border-border py-12">
+            <Heart className="h-24 w-24 text-accent/70 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               Your wishlist is empty
             </h2>
             <p className="text-muted-foreground mb-6">
               Start adding books you love!
             </p>
             <Link to="/catalog">
-              <Button className="btn-primary">Browse Catalog</Button>
+              <Button size="lg" className="rounded-lg">Browse Catalog</Button>
             </Link>
           </Card>
         ) : (
