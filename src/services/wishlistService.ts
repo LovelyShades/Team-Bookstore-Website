@@ -76,12 +76,21 @@ export const wishlistService = {
     try {
       const items = JSON.parse(localWishlist);
 
-      // Add all items to database wishlist
+      // Add all items to database wishlist, skip items that no longer exist
       for (const item of items) {
-        await this.addToWishlist(userId, item.id);
+        try {
+          await this.addToWishlist(userId, item.id);
+        } catch (itemError: any) {
+          // Skip items that don't exist or are already in wishlist
+          if (itemError.code === '23503' || itemError.code === '23505') {
+            console.log(`Skipping item ${item.id}: ${itemError.message}`);
+            continue;
+          }
+          throw itemError;
+        }
       }
 
-      // Clear localStorage after successful migration
+      // Clear localStorage after migration attempt (successful or partial)
       localStorage.removeItem(key);
       localStorage.removeItem('wishlist'); // Also remove non-user-specific
     } catch (error) {

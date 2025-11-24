@@ -146,7 +146,6 @@ const Catalog = () => {
             <input
               name="q"
               placeholder="Search by book name, author, or ISBN..."
-              defaultValue={filters.q}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
               className="w-full px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring"

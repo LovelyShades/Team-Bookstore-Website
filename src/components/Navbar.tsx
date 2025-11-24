@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Menu, X, ShoppingCart, Heart, Package, User, LogIn, Shield, Tag, BookOpen, BookHeart } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 
 export const Navbar = () => {
   const { user, isAdmin } = useAuth();
@@ -125,6 +125,9 @@ export const Navbar = () => {
               <SheetContent side="right" className="w-[280px] sm:w-[350px]">
                 <SheetHeader>
                   <SheetTitle className="text-left text-primary">Menu</SheetTitle>
+                  <SheetDescription className="text-left">
+                    Navigate through the bookstore
+                  </SheetDescription>
                 </SheetHeader>
 
                 <div className="flex flex-col gap-2 mt-8">
