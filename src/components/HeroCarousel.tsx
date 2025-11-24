@@ -125,6 +125,16 @@ export const HeroCarousel = () => {
                           {Math.round(book.sale_percentage)}% OFF
                         </div>
                       )}
+                      {book.stock > 0 && (
+                        <div className="absolute top-2 right-2 z-10 bg-primary/80 text-primary-foreground px-2 py-1 rounded-md text-xs shadow-md font-medium">
+                          {book.stock === 1 ? "1 left" : `${book.stock} left`}
+                        </div>
+                      )}
+                      {book.stock === 0 && (
+                        <div className="absolute top-2 right-2 z-10 bg-destructive text-destructive-foreground px-2 py-1 rounded-md text-xs shadow-md font-medium">
+                          Out of Stock
+                        </div>
+                      )}
                       <img
                         src={book.img_url || "/placeholder.svg"}
                         alt={book.name}
@@ -211,6 +221,16 @@ export const HeroCarousel = () => {
                           {Math.round(book.sale_percentage)}% OFF
                         </div>
                       )}
+                      {book.stock > 0 && (
+                        <div className="absolute top-2 right-2 z-10 bg-primary/80 text-primary-foreground px-2 py-1 rounded-md text-xs shadow-md font-medium">
+                          {book.stock === 1 ? "1 left" : `${book.stock} left`}
+                        </div>
+                      )}
+                      {book.stock === 0 && (
+                        <div className="absolute top-2 right-2 z-10 bg-destructive text-destructive-foreground px-2 py-1 rounded-md text-xs shadow-md font-medium">
+                          Out of Stock
+                        </div>
+                      )}
 
                       <img
                         src={book.img_url || "/placeholder.svg"}
@@ -225,8 +245,8 @@ export const HeroCarousel = () => {
           </CarouselContent>
 
           {/* ===== Arrows (Desktop only) ===== */}
-          <CarouselPrevious className="hidden md:flex absolute left-0 -translate-x-10 top-1/2 -translate-y-1/2 h-10 w-10 text-white hover:text-accent hover:scale-110 transition-all shadow-none border-none bg-transparent" />
-          <CarouselNext className="hidden md:flex absolute right-0 translate-x-10 top-1/2 -translate-y-1/2 h-10 w-10 text-white hover:text-accent hover:scale-110 transition-all shadow-none border-none bg-transparent" />
+          <CarouselPrevious className="hidden md:flex absolute left-0 -translate-x-10 top-1/2 -translate-y-1/2 h-10 w-10 text-white hover:text-accent hover:scale-110 hover:bg-transparent transition-all shadow-none border-none bg-transparent" />
+          <CarouselNext className="hidden md:flex absolute right-0 translate-x-10 top-1/2 -translate-y-1/2 h-10 w-10 text-white hover:text-accent hover:scale-110 hover:bg-transparent transition-all shadow-none border-none bg-transparent" />
         </Carousel>
       </div>
 

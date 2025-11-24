@@ -8,16 +8,20 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/contexts/AuthContext';
 import { BookCard } from '@/components/BookCard';
-import { Grid3x3, List, BookOpen, ChevronDown } from 'lucide-react';
-import { Slider } from "@/components/ui/slider";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { BookOpen } from 'lucide-react';
+import { PageHeader } from '@/components/PageHeader';
+import { SortDropdown, SortOption } from '@/components/filters/SortDropdown';
+import { AvailabilityDropdown } from '@/components/filters/AvailabilityDropdown';
+import { ViewToggle } from '@/components/ViewToggle';
+
+const SORT_OPTIONS: SortOption[] = [
+  { value: "created_at", label: "Newest First" },
+  { value: "name", label: "Name (A-Z)" },
+  { value: "stock_low", label: "Quantity: Low to High" },
+  { value: "stock_high", label: "Quantity: High to Low" },
+  { value: "price_low", label: "Price: Low to High" },
+  { value: "price_high", label: "Price: High to Low" },
+];
 
 const Catalog = () => {
   const { isAdmin } = useAuth();
@@ -117,17 +121,11 @@ const Catalog = () => {
 
         {/* Header */}
         <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <BookOpen className="h-8 w-8 text-accent" />
-            <div>
-              <h1 className="text-4xl font-bold text-foreground">
-                Book Catalog
-              </h1>
-              <p className="text-muted-foreground">
-                Discover your next great read
-              </p>
-            </div>
-          </div>
+          <PageHeader
+            icon={BookOpen}
+            title="Book Catalog"
+            description="Discover your next great read"
+          />
           {isAdmin && (
             <Link
               to="/admin"
@@ -156,72 +154,18 @@ const Catalog = () => {
 
             {/* Filters Row */}
             <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-              {/* Sort & Price Range Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button type="button" className="flex-1 min-w-[250px] px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring cursor-pointer text-left flex items-center justify-between">
-                    <span>
-                      {filters.sort === "created_at" && "Newest First"}
-                      {filters.sort === "name" && "Name (A-Z)"}
-                      {filters.sort === "stock_low" && "Quantity: Low to High"}
-                      {filters.sort === "stock_high" && "Quantity: High to Low"}
-                      {filters.sort === "price_low" && "Price: Low to High"}
-                      {filters.sort === "price_high" && "Price: High to Low"}
-                    </span>
-                    <ChevronDown className="h-4 w-4 opacity-50" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[300px]">
-                  <DropdownMenuRadioGroup value={filters.sort} onValueChange={(value) => setFilters({ ...filters, sort: value })}>
-                    <DropdownMenuRadioItem value="created_at">Newest First</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="name">Name (A-Z)</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="stock_low">Quantity: Low to High</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="stock_high">Quantity: High to Low</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="price_low">Price: Low to High</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="price_high">Price: High to Low</DropdownMenuRadioItem>
-                  </DropdownMenuRadioGroup>
-
-                  <DropdownMenuSeparator />
-
-                  {/* Price Range inside dropdown */}
-                  <div className="px-2 py-3" onPointerDown={(e) => e.stopPropagation()}>
-                    <label className="text-sm font-medium mb-2 block">
-                      Price Range: ${filters.priceMin} - ${filters.priceMax}
-                    </label>
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      minStepsBetweenThumbs={0}
-                      value={[filters.priceMin, filters.priceMax]}
-                      onValueChange={(vals) =>
-                        setFilters((prev) => ({
-                          ...prev,
-                          priceMin: vals[0],
-                          priceMax: vals[1],
-                        }))
-                      }
-                      className="mb-2"
-                    />
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Availability Dropdown */}
-              <select
-                id="available"
-                name="available"
-                aria-label="Filter by availability"
+              <SortDropdown
+                sortValue={filters.sort}
+                onSortChange={(value) => setFilters({ ...filters, sort: value })}
+                sortOptions={SORT_OPTIONS}
+                priceMin={filters.priceMin}
+                priceMax={filters.priceMax}
+                onPriceChange={(min, max) => setFilters({ ...filters, priceMin: min, priceMax: max })}
+              />
+              <AvailabilityDropdown
                 value={filters.available}
-                onChange={(e) =>
-                  setFilters({ ...filters, available: e.target.value })
-                }
-                className="flex-1 min-w-[160px] px-4 py-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring cursor-pointer"
-              >
-                <option value="0">All Books</option>
-                <option value="1">In Stock Only</option>
-                <option value="2">Out of Stock</option>
-              </select>
+                onChange={(value) => setFilters({ ...filters, available: value })}
+              />
             </div>
           </form>
         </Card>
@@ -240,27 +184,7 @@ const Catalog = () => {
             )}
           </div>
 
-          {/* View Mode Toggle */}
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-              className={viewMode === 'grid' ? 'btn-primary' : ''}
-            >
-              <Grid3x3 className="h-4 w-4 mr-2" />
-              Grid
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className={viewMode === 'list' ? 'btn-primary' : ''}
-            >
-              <List className="h-4 w-4 mr-2" />
-              List
-            </Button>
-          </div>
+          <ViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
 
         {/* Items display - Grid or List */}

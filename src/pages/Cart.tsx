@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingBag, Trash2, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { CartItem as CartItemType, Item } from "@/types";
+import { PageHeader } from "@/components/PageHeader";
 
 const Cart = () => {
   const { user } = useAuth();
@@ -129,17 +130,13 @@ const Cart = () => {
   // --- Empty cart
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          <div className="flex items-center gap-3">
-            <ShoppingBag className="h-8 w-8 text-accent" />
-            <div>
-              <h1 className="text-4xl font-bold text-foreground">
-                Shopping Cart
-              </h1>
-              <p className="text-muted-foreground">Review your selected books</p>
-            </div>
-          </div>
+          <PageHeader
+            icon={ShoppingBag}
+            title="Shopping Cart"
+            description="Review your selected books"
+          />
           <Card className="text-center bg-card backdrop-blur-sm border-border py-12">
             <svg
               className="w-24 h-24 mx-auto text-muted mb-4"
@@ -163,23 +160,19 @@ const Cart = () => {
             </Link>
           </Card>
         </div>
-      </div>
+      </main>
     );
   }
 
   // --- Main cart
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <ShoppingBag className="h-8 w-8 text-accent" />
-          <div>
-            <h1 className="text-4xl font-bold text-foreground">
-              Shopping Cart
-            </h1>
-            <p className="text-muted-foreground">Review your selected books</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={ShoppingBag}
+          title="Shopping Cart"
+          description="Review your selected books"
+        />
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart Items */}
@@ -358,7 +351,7 @@ const Cart = () => {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

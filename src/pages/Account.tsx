@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import ShippingAddressManager from '@/components/ShippingAddressManager';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { PageHeader } from '@/components/PageHeader';
 
 const Account = () => {
   const { user, isAdmin, signOut } = useAuth();
@@ -44,15 +45,13 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <User className="h-8 w-8 text-accent" />
-          <div>
-            <h1 className="text-4xl font-bold text-foreground">My Account</h1>
-            <p className="text-muted-foreground">Manage your profile and preferences</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={User}
+          title="My Account"
+          description="Manage your profile and preferences"
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* User Info Sidebar */}
@@ -213,7 +212,7 @@ const Account = () => {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

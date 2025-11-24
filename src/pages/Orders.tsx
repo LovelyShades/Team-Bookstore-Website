@@ -10,14 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Package, 
-  ChevronDown, 
-  ChevronUp, 
-  Truck, 
-  CheckCircle, 
+import {
+  Package,
+  ChevronDown,
+  ChevronUp,
+  Truck,
+  CheckCircle,
   CalendarDays,
-  Clock, 
+  Clock,
   MapPin,
   Calendar,
   ShoppingBag,
@@ -28,6 +28,7 @@ import {
 import { format } from 'date-fns';
 import { Order as OrderType, OrderItem as OrderItemType, Item, ShippingAddress } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { PageHeader } from '@/components/PageHeader';
 
 const Orders = () => {
   const [orderSearch, setOrderSearch] = useState(""); // added search bar state
@@ -632,17 +633,13 @@ const Orders = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
+    <main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <CalendarDays className="h-8 w-8 text-accent" />
-          <div>
-            <h1 className="text-4xl font-bold text-foreground">
-              {isAdmin ? 'Orders Management' : 'My Orders'}
-            </h1>
-            <p className="text-muted-foreground">Track your order history</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={CalendarDays}
+          title={isAdmin ? 'Orders Management' : 'My Orders'}
+          description="Track your order history"
+        />
 
         {isAdmin ? (
           <Tabs defaultValue="my-orders" className="space-y-6">
@@ -825,7 +822,7 @@ const Orders = () => {
           </Tabs>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

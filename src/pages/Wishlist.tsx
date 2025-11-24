@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { wishlistService } from "@/services/wishlistService";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/PageHeader";
 
 const Wishlist = () => {
   const { user } = useAuth();
@@ -74,13 +75,11 @@ const Wishlist = () => {
     return (
       <main className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          <div className="flex items-center gap-3">
-            <Heart className="h-8 w-8 text-accent" />
-            <div>
-              <h1 className="text-4xl font-bold text-foreground">My Wishlist</h1>
-              <p className="text-muted-foreground">Books you've saved for later</p>
-            </div>
-          </div>
+          <PageHeader
+            icon={Heart}
+            title="My Wishlist"
+            description="Books you've saved for later"
+          />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
             {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-96 w-full rounded-lg" />
@@ -96,13 +95,11 @@ const Wishlist = () => {
       <div className="max-w-7xl mx-auto space-y-6">
 
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <Heart className="h-8 w-8 text-accent" />
-          <div>
-            <h1 className="text-4xl font-bold text-foreground">My Wishlist</h1>
-            <p className="text-muted-foreground">Books you've saved for later</p>
-          </div>
-        </div>
+        <PageHeader
+          icon={Heart}
+          title="My Wishlist"
+          description="Books you've saved for later"
+        />
 
         {/* Empty State */}
         {wishlistData.length === 0 ? (
