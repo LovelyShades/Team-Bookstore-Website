@@ -16,6 +16,7 @@ interface OrderWithItems {
   id: string;
   created_at: string;
   customer_email: string | null;
+  user_id: string | null;
   total_cents: number;
   discount_code: string | null;
   discount_pct: number | null;
@@ -27,6 +28,9 @@ interface OrderWithItems {
       img_url: string | null;
     } | null;
   }>;
+  profiles?: {
+    full_name: string | null;
+  } | null;
 }
 
 export default function AdminOrders() {
@@ -44,6 +48,7 @@ export default function AdminOrders() {
           id,
           created_at,
           customer_email,
+          user_id,
           total_cents,
           discount_code,
           discount_pct,
@@ -54,10 +59,13 @@ export default function AdminOrders() {
               name,
               img_url
             )
+          ),
+          profiles:user_id (
+            full_name
           )
         `)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as OrderWithItems[];
     },
@@ -196,6 +204,9 @@ export default function AdminOrders() {
         // Search by customer email
         if (order.customer_email?.toLowerCase().includes(searchLower)) return true;
 
+        // Search by customer full name
+        if (order.profiles?.full_name?.toLowerCase().includes(searchLower)) return true;
+
         // Search by item names
         const hasMatchingItem = order.order_items.some(orderItem =>
           orderItem.items?.name?.toLowerCase().includes(searchLower)
@@ -228,7 +239,9 @@ export default function AdminOrders() {
   const sortedOrders = orders ? [...orders].sort((a, b) => {
     switch (sortBy) {
       case 'customer':
-        return (a.customer_email || '').localeCompare(b.customer_email || '');
+        const aName = a.profiles?.full_name || a.customer_email || '';
+        const bName = b.profiles?.full_name || b.customer_email || '';
+        return aName.localeCompare(bName);
       case 'total':
         return b.total_cents - a.total_cents;
       case 'date':
@@ -350,7 +363,12 @@ export default function AdminOrders() {
                           </Badge>
                         </CardTitle>
                         <CardDescription className="space-y-1 mt-2">
-                          <span className="block">Customer: {order.customer_email || 'N/A'}</span>
+                          <span className="block">
+                            Customer: {order.profiles?.full_name || order.customer_email || 'N/A'}
+                            {order.profiles?.full_name && order.customer_email && (
+                              <span className="text-xs text-muted-foreground ml-1">({order.customer_email})</span>
+                            )}
+                          </span>
                           <span className="block">Date: {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}</span>
                         </CardDescription>
                       </div>
@@ -523,7 +541,12 @@ export default function AdminOrders() {
                           </Badge>
                         </CardTitle>
                         <CardDescription className="space-y-1 mt-2">
-                          <span className="block">Customer: {order.customer_email || 'N/A'}</span>
+                          <span className="block">
+                            Customer: {order.profiles?.full_name || order.customer_email || 'N/A'}
+                            {order.profiles?.full_name && order.customer_email && (
+                              <span className="text-xs text-muted-foreground ml-1">({order.customer_email})</span>
+                            )}
+                          </span>
                           <span className="block">Date: {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}</span>
                         </CardDescription>
                       </div>
@@ -648,7 +671,12 @@ export default function AdminOrders() {
                           </Badge>
                         </CardTitle>
                         <CardDescription className="space-y-1 mt-2">
-                          <span className="block">Customer: {order.customer_email || 'N/A'}</span>
+                          <span className="block">
+                            Customer: {order.profiles?.full_name || order.customer_email || 'N/A'}
+                            {order.profiles?.full_name && order.customer_email && (
+                              <span className="text-xs text-muted-foreground ml-1">({order.customer_email})</span>
+                            )}
+                          </span>
                           <span className="block">Date: {new Date(order.created_at).toLocaleDateString()} at {new Date(order.created_at).toLocaleTimeString()}</span>
                         </CardDescription>
                       </div>
