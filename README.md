@@ -1,99 +1,116 @@
-# 📚 Bookstore-Ecommerce
+# 📚 Bookstore E-Commerce — Project Showcase
 
-A modern full-stack bookstore built with **Next.js 16**, **React 19**, and **Supabase (Postgres + Auth + Storage + RPC)**.  
-Users can browse items, add to cart, apply discounts, and checkout — all through a single Supabase function.
+[![Framework](https://img.shields.io/badge/Framework-Next.js%2016-black.svg)]()
+[![Frontend](https://img.shields.io/badge/Frontend-React%2019-blue.svg)]()
+[![Backend](https://img.shields.io/badge/Backend-Supabase%20(Postgres%2FAuth%2FStorage)-3ECF8E.svg)]()
+[![Status](https://img.shields.io/badge/Status-Showcase-lightgrey.svg)]()
+
+**Bookstore E-Commerce** is a modern full-stack bookstore built to demonstrate **team collaboration, scalable database design, and production-style checkout flows**.  
+Users can browse items, add to cart, apply discounts, and checkout — powered by a **single atomic Supabase RPC**.
+
+> **Team:** Alanna Matundan + Team  
+> **Purpose:** Portfolio · Educational Review · Demonstration Only
 
 ---
 
-## 🧰 1️⃣ System Setup (Before Running)
+## ✨ Highlights
 
-### ✅ Install Node 22 LTS
-This project **requires Node 22 LTS**.  
-Older or newer versions (like Node 24) may cause build errors.
+- Full-stack architecture with **Next.js + Supabase**
+- **Role-based authentication** (customer/admin)
+- Admin dashboard for **inventory + order management**
+- Postgres schema for **users, items, carts, orders, discounts**
+- Atomic checkout using **Supabase RPC** (`fn_checkout`) to ensure consistency:
+  - Validates discount
+  - Computes subtotal → discount → tax → total
+  - Inserts orders + order_items
+  - Decrements inventory
+  - Clears cart
 
-#### 🔍 Check your version
+---
+
+## 🎬 Showcase (Demo)
+
+> Add your demo video here (recommended)
+
+### Option A — YouTube thumbnail link
+[![Watch Demo](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
+
+### Option B — Custom screenshot/GIF
+<!--
+<p align="center">
+  <img src="public/demo.gif" alt="Demo"><br>
+  <em>Checkout flow + admin dashboard</em>
+</p>
+-->
+
+---
+
+## 🧰 Tech Stack
+
+- **Frontend:** Next.js 16, React 19, TailwindCSS, TypeScript
+- **Backend:** Supabase (Postgres, Auth, Storage, RPC)
+- **Deployment:** Vercel (auto-deploy from GitHub)
+
+---
+
+## 🚀 Getting Started
+
+### ✅ Requirements
+- **Node.js 22 LTS** (required)
+
+Check:
 ```bash
 node -v
-
-If it’s not v22.x, install or switch to Node 22 LTS:
-
-🪟 Windows
-# If you used nvm-windows:
-nvm install 22
-nvm use 22
-node -v
-
-If you installed Node via the official installer, uninstall from
-Control Panel → Programs → Node.js → Uninstall, then reinstall from
-👉 https://nodejs.org
- (choose the green “22 LTS” version).
-
-🍎 macOS / 🐧 Linux
-Use nvm (recommended):
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-source ~/.bashrc  # or ~/.zshrc
-nvm install 22
-nvm use 22
-
-# Clone repository
-git clone https://github.com/your-org/bookstore-ecommerce.git
+🖥️ Install & Run Locally
+bash
+Copy code
+# Clone the repository
+git clone https://github.com/YOUR_ORG/bookstore-ecommerce.git
 cd bookstore-ecommerce
 
-Create environment file called .env.local keys are in file sent on discord
+# Install dependencies
+npm install
+
+# Create env file
+# Keys are provided in the file shared on Discord
 echo "NEXT_PUBLIC_SUPABASE_URL=your-project-url" > .env.local
 echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key" >> .env.local
 
-Install dependencies
-npm install
-
-Start development server
+# Start dev server
 npm run dev
-Open 👉 http://localhost:3000
+Open:
 
+http://localhost:3000
 
-💻 3️⃣ Technologies Used
+🔐 Checkout RPC (Core System)
+Checkout is performed atomically via:
 
-Frontend: Next.js (React) + Tailwind CSS
-
-Component-based UI (buttons, inputs, tables)
-
-File-based routing: /catalog, /cart, /checkout, /admin
-
-Deployed on Vercel with auto-deploys from GitHub
-
-Backend / Database: Supabase (Postgres + Auth + Storage + RPC)
-
-Postgres stores users, items, carts, orders, discounts
-
-Auth handles login/register (customer/admin roles)
-
-Storage hosts product images (book covers)
-
-RPC fn_checkout(cart_id, discount_code) runs checkout atomically:
-
-1. Validate discount
-2. Compute subtotal → discount → tax (8.25%) → total
-3. Insert orders + order_items
-4. Decrement item.qty_available
-5. Clear cart
-
-Called from frontend:
 await supabase.rpc('fn_checkout', { cart_id, discount_code });
 
+What fn_checkout(cart_id, discount_code) does:
+Validate discount code
 
-📁 4️⃣ Project Structure
+Compute subtotal → discount → tax (8.25%) → total
+
+Insert into orders and order_items
+
+Decrement items.qty_available
+
+Clear cart contents
+
+🧱 Project Structure
+bash
+Copy code
 bookstore-ecommerce/
-├─ pages/         # Next.js routes
-├─ components/    # Reusable UI
-├─ supabase/      # Client, types, RPC
-├─ public/        # Static assets
-├─ styles/        # Tailwind configs
+├─ pages/          # Next.js routes (/catalog, /cart, /checkout, /admin)
+├─ components/     # Reusable UI components
+├─ supabase/       # Supabase client, types, RPC helpers
+├─ public/         # Static assets
+├─ styles/         # Tailwind + styling configs
 ├─ package.json
 ├─ tsconfig.json
 └─ next.config.ts
-
-
-👥 5️⃣ Team
+👥 Team
 Name	Role	Focus
 Alanna	Auth + Items Schema	Supabase / Database
 Sebastian	Cart + Discount RPC	Backend Logic
@@ -102,31 +119,32 @@ Travis	Auth Pages	User Flows
 Mark	Orders / Checkout UI	Layouts
 Christopher	Checkout Contract	Testing & Data
 
-
-🧾 6️⃣ Scripts
+🧾 Scripts
 Command	Description
 npm run dev	Start development server
 npm run build	Build for production
 npm run start	Run built app
 npm run lint	Lint code with ESLint
 
-
-🩵 7️⃣ Common Issues
+🩵 Common Issues
 Problem	Fix
-npm: command not found	Node not added to PATH — reinstall Node 22 LTS
+npm: command not found	Node not installed / not in PATH — install Node 22 LTS
 next: not recognized	Run npm install again
-.env.local missing	Create file using commands above
-Port 3000 in use	Run npx kill-port 3000 or npm run dev -- -p 3001
+.env.local missing	Create it using the commands above
+Port 3000 in use	npx kill-port 3000 or npm run dev -- -p 3001
 
+🚢 Deployment
+Deployed on Vercel — pushing to main triggers an automatic production deployment.
 
-🧩 8️⃣ Deployment
-
-Deployed on Vercel — pushing to main automatically deploys to production.
-
-```
 ⚖️ License
-
 MIT License — free for educational and collaborative use.
+
+👩‍💻 Authors
+Alanna Matundan — database/auth design + full-stack features + architecture
+
+Team Contributors — UI, backend logic, checkout flows, testing
+
+© 2026 Alanna Matundan & Contributors. All rights reserved.
 
 
 
