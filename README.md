@@ -110,9 +110,10 @@ bookstore-ecommerce/
 ├─ package.json
 ├─ tsconfig.json
 └─ next.config.ts
+
 👥 Team
 Name	Role	Focus
-Alanna	Auth + Items Schema	Supabase / Database
+Alanna	Auth + Items Schema	Supabase / Database + Frontend Polish
 Sebastian	Cart + Discount RPC	Backend Logic
 Emily	UI + Layout	Next.js + Tailwind
 Travis	Auth Pages	User Flows
