@@ -30,18 +30,9 @@ Users can browse items, add to cart, apply discounts, and checkout — powered b
 
 ## 🎬 Showcase (Demo)
 
-> Add your demo video here (recommended)
+💕 Check out the video!
 
-### Option A — YouTube thumbnail link
-[![Watch Demo](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
-
-### Option B — Custom screenshot/GIF
-<!--
-<p align="center">
-  <img src="public/demo.gif" alt="Demo"><br>
-  <em>Checkout flow + admin dashboard</em>
-</p>
--->
+[![Watch the video](https://img.youtube.com/vi/Re56C-EuaT4/maxresdefault.jpg)](https://youtu.be/Re56C-EuaT4)
 
 ---
 
